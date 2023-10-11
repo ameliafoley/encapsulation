@@ -2,7 +2,7 @@ library(readxl) #for loading Excel files
 library(dplyr) #for data processing
 library(here) #to set paths
 library(tidyverse)
-
+library(ggplot2)
 #path to data
 data_location3 <- here::here("data","envcond_8_16.xlsx")
 
@@ -27,9 +27,35 @@ ggplot(data = rawdata, aes(x = day, y = value, color = meas, shape = type)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Day") + ylab("Value") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("Env Cond Exp")
 
-ggplot(data = fluor, aes(x = day, y = value, color = meas, shape = type)) +
+
+ggplot(data = fluor, aes(x = day, y = value, color = meas)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Day") + ylab("Value") + 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("Env Cond Exp") + facet_wrap(~meas) + facet_wrap(~type)
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Env Cond Exp") + facet_wrap(~meas) + facet_wrap(~type) + ylab("RFU")
+
+
+#JROB THE R GOD 
+
+test<- fluor
+test$value_2<- test$value / 1000
+test$type_2<- ifelse(test$type == "decap", "Decapsulated", "Exterior Solution")
+test$Measure<- test$meas
+test$Measure<- ifelse(test$meas == "gfp", "GFP", test$Measure)
+test$Measure<- ifelse(test$meas == "mscarlet", "mScarlet", test$Measure)
+test$Measure<- ifelse(test$meas == "mvenus", "mVenus", test$Measure)
+
+library(ggplot2)
+library(extrafont)
+loadfonts(device = "pdf")
+
+ggplot(data = test, aes(x = day, y = value_2, color = Measure)) +
+  geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Day") + ylab("Value") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        text = element_text(family = "Times New Roman")) +
+  ggtitle("Enviromental Conditioning Experiment")  + 
+  facet_wrap(~type_2, ncol = 2) + ylab("Thou. RFU") + 
+  labs(subtitle = "Duke University, Gunsch Lab", caption = "Author: Amelia Foley") +
+  scale_color_manual(values=c("forestgreen", "red", "blue")) 
 
 
   #+facet_wrap(~)
