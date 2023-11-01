@@ -176,10 +176,18 @@ ggplot(data = g7, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)
 
 zsum <- cor %>% group_by(time_h.x, type, sample, strain) %>% summarize(blank_cor = mean(blank_cor))
 
-ggplot(data = zsum, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)) +
+
+ggplot(data = zsum2, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
-  facet_wrap(~ type)
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type2)
 
 #capitalize
 zsum<- zsum %>% mutate(Strain = fct_recode(strain, 
@@ -194,7 +202,13 @@ glimpse(zsum)
 #no geom smooth
 ggplot(data = zsum, aes(x = time_h.x, y = blank_cor, color = Strain, shape = Type)) +
   geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
   facet_wrap(~ Type)+
   scale_color_brewer(palette="Set2")
 ggsave("avgODrep2_f199_g7.png", width = 8, height = 5)

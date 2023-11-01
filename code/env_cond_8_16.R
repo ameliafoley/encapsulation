@@ -66,7 +66,11 @@ plate2 <- plate %>% remove_missing()
 #G7 leaked from capsules measured by CFU/mL
 ggplot(data = plate2, aes(x = day, y = cfu_ml)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Day") + ylab("CFU/mL") + 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("CFU/mL Leaked from Capsules")
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        text = element_text(size = 20)) +ggtitle("CFU/mL Leaked from Capsules")+
+  scale_y_continuous(trans='log10')
+# 10/26/23 updated axis limits to make graph easier to visualize
+
 
 #G7 leaked from capsules measured by fluorescence
 leak <- fluor %>% filter(type=="water")
