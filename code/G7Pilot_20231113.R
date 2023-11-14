@@ -7,11 +7,13 @@ library(ggplot2)
 data_location0 <- here::here("data","G7Pilot_Day0_20231104.xlsx")
 data_location3 <- here::here("data","G7Pilot_Day3_20231106.xlsx")
 data_location7 <- here::here("data","G7Pilot_Day7_20231110.xlsx")
+data_location11<- here::here("data", "G7Pilot_Day11_20231114.xlsx")
 
 #load data. 
 day0 <- read_excel(data_location0)
 day3 <- read_excel(data_location3)
 day7 <- read_excel(data_location7)
+day11<- read_excel(data_location11)
 
 glimpse(day0)
 
@@ -19,15 +21,18 @@ glimpse(day0)
 day0<- day0 %>% na.omit() %>% select(!2)
 day3<- day3 %>% na.omit() %>% select(!2)
 day7<- day7 %>% na.omit() %>% select(!2)
+day11<- day11 %>% na.omit() %>% select(!2)
 #rename
 colnames(day0)[1] = "well"
 colnames(day3)[1] = "well"
 colnames(day7)[1] = "well"
+colnames(day11)[1] = "well"
 
 #add time point to data frame
 day0$day <- 0
 day3$day<- 3
 day7$day<- 7
+day11$day<- 11
 
 #load plate layouts
 data_locationtop <- here::here("data", "plate_G7Pilot_top.xlsx")
@@ -72,8 +77,14 @@ join7 <- left_join(day7, plate_top, by = "well")
 long7 <- join7 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
 glimpse(long7)
 
+#day11 bottom
+join11 <- left_join(day11, plate_bottom, by = "well")
+
+long11 <- join11 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
+glimpse(long3)
+
 #combine data from multiple days
-all<- bind_rows(list(long0, long3, long7))
+all<- bind_rows(list(long0, long3, long7, long11))
 
 #Plotting! 
 
@@ -114,21 +125,21 @@ sel<- sel %>% filter(sample != "srb15")
 sel<- sel %>% extract(sample, into = c("reactor", "replicate"), "(.*)_([^_]+)$") #split by underscore
 
 #coating
-test <- sel %>% mutate(coating = case_when(endsWith(sel$reactor, "s1") ~ "yes",
-                                           endsWith(sel$reactor, "b1") ~ "yes",
-                                           endsWith(sel$reactor, "b2") ~ "yes",
-                                           endsWith(sel$reactor, "s2") ~ "yes",
-                                           endsWith(sel$reactor, "b2") ~ "yes",
-                                           endsWith(sel$reactor, "3") ~ "no", 
-                                           endsWith(sel$reactor, "4") ~ "no", 
-                                           endsWith(sel$reactor, "7") ~ "yes", 
-                                           endsWith(sel$reactor, "8") ~ "yes", 
-                                           endsWith(sel$reactor, "9") ~ "no", 
-                                           endsWith(sel$reactor, "10") ~ "no", 
-                                           endsWith(sel$reactor, "5") ~ "na", 
-                                           endsWith(sel$reactor, "6") ~ "na", 
-                                           endsWith(sel$reactor, "11") ~ "na", 
-                                           endsWith(sel$reactor, "12") ~ "na"))
+test <- sel %>% mutate(coating = case_when(endsWith(sel$reactor, "s1") ~ "chitosan",
+                                           endsWith(sel$reactor, "b1") ~ "chitosan",
+                                           endsWith(sel$reactor, "b2") ~ "chitosan",
+                                           endsWith(sel$reactor, "s2") ~ "chitosan",
+                                           endsWith(sel$reactor, "b2") ~ "chitosan",
+                                           endsWith(sel$reactor, "3") ~ "no coating", 
+                                           endsWith(sel$reactor, "4") ~ "no coating", 
+                                           endsWith(sel$reactor, "7") ~ "chitosan", 
+                                           endsWith(sel$reactor, "8") ~ "chitosan", 
+                                           endsWith(sel$reactor, "9") ~ "no coating", 
+                                           endsWith(sel$reactor, "10") ~ "no coating", 
+                                           endsWith(sel$reactor, "5") ~ "free", 
+                                           endsWith(sel$reactor, "6") ~ "free", 
+                                           endsWith(sel$reactor, "11") ~ "free", 
+                                           endsWith(sel$reactor, "12") ~ "free"))
 #add strain/control
 test <- test %>% mutate(strain = case_when(endsWith(sel$reactor, "s1") ~ "G7",
                                            endsWith(sel$reactor, "b1") ~ "G7",
@@ -193,4 +204,79 @@ ggplot(data = microcapsule, aes(x = jitter(day, 0.25), y = value, color = coatin
   xlab("Day") + 
   ylab("RFU Value")+ 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Bacterial Levels Within Microcapsules")+facet_wrap(~strain, nrow = 1)
+  ggtitle("Bacterial Levels Within Microcapsules")+facet_wrap(~strain, nrow = 1)+
+  scale_y_continuous(trans='log10')
+
+#comparing specific factors
+sample<- microcapsule %>% filter(strain == "G7")
+ggplot(data = sample, aes(x = jitter(day, 0.25), y = value, color = coating, shape = biorep)) +
+  geom_point(stat='identity') +
+  geom_smooth(se = FALSE, span = 1) +
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Bacterial Levels Within Microcapsules")+facet_wrap(~coating, nrow = 1)+
+  scale_y_continuous(trans='log10')
+
+#take means
+summ <- test %>% group_by(day, meas, type, coating, strain, treatment) %>% summarize(avg_rfu = mean(value), 
+                                                           sd = sd(value))
+
+microcapsule<- summ %>% filter(type == "microcapsule") %>% filter(meas == "mScarlet")
+supernatant<- summ %>% filter(type == "supernatant") %>% filter(meas == "mScarlet")
+sample<- microcapsule %>% filter(strain == "G7")
+# microcapsule sums
+ggplot(data = sample, aes(x = day, y = avg_rfu, color = coating)) +
+  geom_point(stat='identity') +
+  geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+                position=position_dodge(.9))+
+  geom_smooth(se = FALSE, span = 1) +
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Within Microcapsules")+
+  facet_wrap(~factor(coating, c("no coating", "chitosan", "free")), nrow = 1)+
+  scale_y_continuous(trans='log10')+
+  theme(strip.text = element_text(
+    size = 14))+
+  scale_color_manual(values = c("no coating" = "aquamarine4", 
+                                "chitosan" = "olivedrab3", 
+                                "free" = "coral1"))
+
+#supernatant sums
+super<- supernatant %>% filter(strain == "G7")
+ggplot(data = super, aes(x = day, y = avg_rfu, color = coating)) +
+  geom_point(stat='identity') +
+  geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+                position=position_dodge(.9))+
+  geom_smooth(se = FALSE, span = 1) +
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Released in Supernatant")+
+  facet_wrap(~factor(coating, c("no coating", "chitosan", "free")), nrow = 1)+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_color_manual(values = c("no coating" = "aquamarine4", 
+                                "chitosan" = "olivedrab3", 
+                                "free" = "coral1"))
+
