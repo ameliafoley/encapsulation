@@ -71,6 +71,22 @@ ggplot(data = plate2, aes(x = day, y = cfu_ml)) +
   scale_y_continuous(trans='log10')
 # 10/26/23 updated axis limits to make graph easier to visualize
 
+#updating fig for poster
+ggplot(data = plate2, aes(x = day, y = cfu_ml)) +
+  geom_point() + geom_smooth(se = FALSE) + 
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("CFU/mL") + 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5), 
+        panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Bacterial Levels in Supernatant")+
+  scale_y_continuous(trans='log10')+
+  scale_x_continuous(breaks=c(1,3,7,14,21, 28))
 
 #G7 leaked from capsules measured by fluorescence
 leak <- fluor %>% filter(type=="water")

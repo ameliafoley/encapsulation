@@ -180,6 +180,33 @@ ggplot(data = join_all, aes(x = value, y = avg.cfu, color = meas)) +
 
 #this does look better. adjusting annotate so equations don't block line
 
+#fixing figure for poster
+fig <- join_all %>% filter(meas == "mScarlet")
+ggplot(data = fig, aes(x = value, y = avg.cfu, color = meas)) +
+  geom_point(stat='identity') +
+  geom_smooth(method='lm', se=FALSE)+
+  theme_classic() + 
+  xlab("RFU Value") + 
+  ylab("CFU/mL")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5), 
+        panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("G7: CFU/mL vs RFU")+
+  scale_color_manual(values = c("mScarlet" = "indianred3"))+
+  annotate("text", x = c(2000), y = c(1.1E+08),  
+           label = c("y = 1.8e04x - 4.4e06 | R^2 = 0.9692"), 
+           color= c("indianred3"),  size=5 , fontface="bold") +
+  scale_y_continuous(trans="log10")
+
+
+
+
+
+
 ##OLD CODE - pausing here 10/30/23 2pm
 
 #just kidding. need to log actual value. 

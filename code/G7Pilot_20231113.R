@@ -8,12 +8,16 @@ data_location0 <- here::here("data","G7Pilot_Day0_20231104.xlsx")
 data_location3 <- here::here("data","G7Pilot_Day3_20231106.xlsx")
 data_location7 <- here::here("data","G7Pilot_Day7_20231110.xlsx")
 data_location11<- here::here("data", "G7Pilot_Day11_20231114.xlsx")
+data_location14<- here::here("data", "G7Pilot_Day14_20231117.xlsx")
+data_location24<- here::here("data", "G7Pilot_Day24_20231127.xlsx")
 
 #load data. 
 day0 <- read_excel(data_location0)
 day3 <- read_excel(data_location3)
 day7 <- read_excel(data_location7)
 day11<- read_excel(data_location11)
+day14<- read_excel(data_location14)
+day24<- read_excel(data_location24)
 
 glimpse(day0)
 
@@ -22,17 +26,23 @@ day0<- day0 %>% na.omit() %>% select(!2)
 day3<- day3 %>% na.omit() %>% select(!2)
 day7<- day7 %>% na.omit() %>% select(!2)
 day11<- day11 %>% na.omit() %>% select(!2)
+day14<- day14 %>% na.omit() %>% select(!2)
+day24<- day24 %>% na.omit() %>% select(!2)
 #rename
 colnames(day0)[1] = "well"
 colnames(day3)[1] = "well"
 colnames(day7)[1] = "well"
 colnames(day11)[1] = "well"
+colnames(day14)[1] = "well"
+colnames(day24)[1] = "well"
 
 #add time point to data frame
 day0$day <- 0
 day3$day<- 3
 day7$day<- 7
 day11$day<- 11
+day14$day<- 14
+day24$day<- 24
 
 #load plate layouts
 data_locationtop <- here::here("data", "plate_G7Pilot_top.xlsx")
@@ -81,10 +91,22 @@ glimpse(long7)
 join11 <- left_join(day11, plate_bottom, by = "well")
 
 long11 <- join11 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
-glimpse(long3)
+glimpse(long11)
+
+#day14 top
+join14 <- left_join(day14, plate_top, by = "well")
+
+long14 <- join14 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
+glimpse(long14)
+
+#day24 bottom
+join24 <- left_join(day24, plate_bottom, by = "well")
+
+long24 <- join24 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
+glimpse(long24)
 
 #combine data from multiple days
-all<- bind_rows(list(long0, long3, long7, long11))
+all<- bind_rows(list(long0, long3, long7, long11, long14, long24))
 
 #Plotting! 
 
@@ -235,7 +257,7 @@ ggplot(data = sample, aes(x = day, y = avg_rfu, color = coating)) +
   theme_classic() + 
   xlab("Day") + 
   ylab("RFU Value")+ 
-  theme(axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
         axis.title = element_text(size = 16),
         axis.text.y = element_text(size = 14),
         legend.title = element_blank(),
@@ -251,7 +273,8 @@ ggplot(data = sample, aes(x = day, y = avg_rfu, color = coating)) +
     size = 14))+
   scale_color_manual(values = c("no coating" = "aquamarine4", 
                                 "chitosan" = "olivedrab3", 
-                                "free" = "coral1"))
+                                "free" = "coral1"))+
+  theme(panel.spacing.x = unit(5, "mm"))
 
 #supernatant sums
 super<- supernatant %>% filter(strain == "G7")
@@ -263,7 +286,7 @@ ggplot(data = super, aes(x = day, y = avg_rfu, color = coating)) +
   theme_classic() + 
   xlab("Day") + 
   ylab("RFU Value")+ 
-  theme(axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
         axis.title = element_text(size = 16),
         axis.text.y = element_text(size = 14),
         legend.title = element_blank(),
@@ -278,5 +301,56 @@ ggplot(data = super, aes(x = day, y = avg_rfu, color = coating)) +
     size = 14)) +
   scale_color_manual(values = c("no coating" = "aquamarine4", 
                                 "chitosan" = "olivedrab3", 
-                                "free" = "coral1"))
+                                "free" = "coral1"))+
+  theme(panel.spacing.x = unit(5, "mm")) #add spacing to facet panels
 
+#add grouped bar chart for supernatant
+ggplot(super, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+              position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Released in Supernatant")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                                "chitosan" = "olivedrab3", 
+                                "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24))
+
+
+#add grouped bar chart for within microcapsules
+ggplot(sample, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+  geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+                position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Within Microcapsules")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                               "chitosan" = "olivedrab3", 
+                               "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24))

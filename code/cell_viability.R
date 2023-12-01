@@ -24,7 +24,7 @@ ggplot(data = data, aes(x = group, y = cfu, fill = group)) +
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
   ggtitle("Cell Viability in Sodium Citrate via Plate Count")  + 
   scale_fill_manual(values=c("darkseagreen4", "lightsalmon")) +
-  stat_compare_means()
+  stat_compare_means()+ scale_y_continuous(trans = 'log10')
 
 #my sample size is super small, of course we are seeing high p-value. let's look at the RFU measurements next
 
@@ -89,4 +89,19 @@ ggplot(data = mScarlet, aes(x = group, y = rfu, fill = group)) +
   scale_fill_manual(values=c("darkseagreen4", "lightsalmon"))+
   stat_compare_means()
 
-  
+#updating for poster
+#plot mScarlet
+ggplot(data = mScarlet, aes(x = group, y = rfu, fill = group)) +
+  geom_boxplot(show.legend = FALSE) + theme_classic() + 
+  xlab("Treatment Group (n=4)") + 
+  ylab("RFU Value") + 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5), 
+        panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Cell Viability in Sodium Citrate") + 
+  scale_fill_manual(values=c("darkseagreen4", "lightsalmon"))+
+  stat_compare_means()
