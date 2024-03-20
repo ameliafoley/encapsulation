@@ -10,6 +10,7 @@ data_location7 <- here::here("data","G7Pilot_Day7_20231110.xlsx")
 data_location11<- here::here("data", "G7Pilot_Day11_20231114.xlsx")
 data_location14<- here::here("data", "G7Pilot_Day14_20231117.xlsx")
 data_location24<- here::here("data", "G7Pilot_Day24_20231127.xlsx")
+data_location42<- here::here("data", "G7Pilot_Day42_20231215.xlsx")
 
 #load data. 
 day0 <- read_excel(data_location0)
@@ -18,6 +19,7 @@ day7 <- read_excel(data_location7)
 day11<- read_excel(data_location11)
 day14<- read_excel(data_location14)
 day24<- read_excel(data_location24)
+day42<- read_excel(data_location42)
 
 glimpse(day0)
 
@@ -28,6 +30,7 @@ day7<- day7 %>% na.omit() %>% select(!2)
 day11<- day11 %>% na.omit() %>% select(!2)
 day14<- day14 %>% na.omit() %>% select(!2)
 day24<- day24 %>% na.omit() %>% select(!2)
+day42<- day42 %>% na.omit() %>% select(!2)
 #rename
 colnames(day0)[1] = "well"
 colnames(day3)[1] = "well"
@@ -35,6 +38,7 @@ colnames(day7)[1] = "well"
 colnames(day11)[1] = "well"
 colnames(day14)[1] = "well"
 colnames(day24)[1] = "well"
+colnames(day42)[1] = "well"
 
 #add time point to data frame
 day0$day <- 0
@@ -43,6 +47,7 @@ day7$day<- 7
 day11$day<- 11
 day14$day<- 14
 day24$day<- 24
+day42$day<- 42
 
 #load plate layouts
 data_locationtop <- here::here("data", "plate_G7Pilot_top.xlsx")
@@ -105,8 +110,14 @@ join24 <- left_join(day24, plate_bottom, by = "well")
 long24 <- join24 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
 glimpse(long24)
 
+#day42 top
+join42 <- left_join(day42, plate_top, by = "well")
+
+long42 <- join42 %>% gather(meas, value, mScarlet:mVenus, factor_key=TRUE)
+glimpse(long42)
+
 #combine data from multiple days
-all<- bind_rows(list(long0, long3, long7, long11, long14, long24))
+all<- bind_rows(list(long0, long3, long7, long11, long14, long24, long42))
 
 #Plotting! 
 
@@ -207,6 +218,9 @@ test <- test %>% mutate(biorep = case_when(endsWith(sel$reactor, "s1") ~ "A",
                                               endsWith(sel$reactor, "6") ~ "B", 
                                               endsWith(sel$reactor, "11") ~ "na", 
                                               endsWith(sel$reactor, "12") ~ "na"))
+library("writexl", )
+data_location2 <- here::here("data","pilotdata.xlsx")
+write_xlsx(test, data_location2)
 #split into measures
 microcapsule<- test %>% filter(type == "microcapsule") %>% filter(meas == "mScarlet")
 supernatant<- test %>% filter(type == "supernatant") %>% filter(meas == "mScarlet")
@@ -327,7 +341,7 @@ geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
   scale_fill_manual(values = c("no coating" = "aquamarine4", 
                                 "chitosan" = "olivedrab3", 
                                 "free" = "coral1"))+
-  scale_x_discrete(breaks=c(0,3,7,11,14,24))
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))
 
 
 #add grouped bar chart for within microcapsules
@@ -353,4 +367,4 @@ ggplot(sample, aes(fill=coating, y=avg_rfu, x = as.factor(day))) +
   scale_fill_manual(values = c("no coating" = "aquamarine4", 
                                "chitosan" = "olivedrab3", 
                                "free" = "coral1"))+
-  scale_x_discrete(breaks=c(0,3,7,11,14,24))
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))

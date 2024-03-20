@@ -172,12 +172,15 @@ ggplot(data = g7, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +ggtitle("G7 in 48-Well Plate")
 
+#save data with 6 individual reps
+data_location_reps <- here::here("data","odwells_six.xlsx")
+write_xlsx(cor, data_location_reps)
 
-
+#average the replicates
 zsum <- cor %>% group_by(time_h.x, type, sample, strain) %>% summarize(blank_cor = mean(blank_cor))
 
 
-ggplot(data = zsum2, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)) +
+ggplot(data = zsum, aes(x = time_h.x, y = blank_cor, color = sample, shape = type)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
         axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
@@ -187,7 +190,7 @@ ggplot(data = zsum2, aes(x = time_h.x, y = blank_cor, color = sample, shape = ty
         legend.text = element_text(size = 14),
         plot.title = element_text(size = 18, hjust = 0.5),
         strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
-  facet_wrap(~ type2)
+  facet_wrap(~ type)
 
 #capitalize
 zsum<- zsum %>% mutate(Strain = fct_recode(strain, 
@@ -212,6 +215,9 @@ ggplot(data = zsum, aes(x = time_h.x, y = blank_cor, color = Strain, shape = Typ
   facet_wrap(~ Type)+
   scale_color_brewer(palette="Set2")
 ggsave("avgODrep2_f199_g7.png", width = 8, height = 5)
+data_location_zsum <- here::here("data","odwells.xlsx")
+library(writexl)
+write_xlsx(zsum, data_location_zsum)
 
 #ggplot(data = cosum, aes(x = time_h, y = corrected, color = sample, shape = type)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600 (Corrected)") + 
