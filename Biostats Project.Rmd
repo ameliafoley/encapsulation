@@ -1,0 +1,386 @@
+---
+title: "Biostats Project"
+output: html_document
+date: '2024-03-21'
+---
+
+```{r}
+library(readxl) #for loading Excel files
+library(dplyr) #for data processing
+library(here) #to set paths
+library(tidyverse)
+library(rstatix)
+#path to data
+data_location <- here::here("data","odwells.xlsx")
+data_location2 <- here::here("data","odwells_six.xlsx")
+#load data. 
+data <- read_excel(data_location)
+six <- read_excel(data_location2)
+
+##What does the growth data look like? 
+ggplot(data = six, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#Since we have 3 wells of each type and lots of time points, these graphs look messy. Let's see the averages of the wells
+#data for average of 3 groups
+glimpse(data)
+data_minus<- data %>% dplyr::select(time_h.x, strain, type, sample, blank_cor)
+ggplot(data = data_minus, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#Now, let's try stats for the dataset with all individual subjects
+glimpse(six)
+six_minus<- six %>% dplyr::select(time_h.x, strain, type, sample, blank_cor, well)
+anova_test(data=six_minus, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+
+```
+With the ANOVA above, we see main effects and interactions. However, I'm not sure we can use this test because the data isn't normally distributed. Let's check that. 
+```{r}
+hist(six_minus$blank_cor)
+#This shows us that our distribution does not look normal. There are lots of zero and near-zero values that skew this, especially since we have a bacterial strain with a long lag time. 
+#Can we transform via log to normalize this? 
+six_trans <- six_minus
+six_trans$plus <- six_trans$blank_cor+1 #adding +1 since we have zero values
+six_trans$log <- log10(six_trans$plus)
+six_trans$sqrt <- six_trans$blank_cor**(1/2)
+
+hist(six_trans$log) #still not normal
+hist(six_trans$sqrt) #still not normal
+```
+#G7 and F199 ANOVA
+These transformations aren't normalizing the data. Let's try truncating the data - we can infer lag time without all of the data present, so we don't neccesarily need all of those near zero values
+```{r}
+trunc <- six_minus %>% filter(blank_cor>0.12) %>% filter(time_h.x>0.5)
+hist(trunc$blank_cor) #now, this looks normal
+shapiro_test(trunc$blank_cor) #this still tells us it's not normal...is it becuase it's bound at zero? 
+#can we run anova on this dataset? 
+#anova_test(data=trunc, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+#getting contrast error. Let's try removing unsued variable, sample
+trunc_minus <- trunc %>% dplyr::select(!sample)
+#anova_test(data=trunc_minus, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+#getting contrast error. Seemed like problem could be that there aren't the same time points for all subjects. Let's check that
+#maybe it would be easier to see "complete cases" for time if time was wide instead of long. let's try that
+wide<-  trunc_minus %>% pivot_wider(names_from=time_h.x, values_from=blank_cor)
+#this makes it easier to see missing cases. most come from rep2. Let's exclude it for now
+drop<- trunc_minus %>% filter(strain != "rep2") %>% filter(time_h.x>13)
+#see how this looks
+wide_drop<-  drop %>% pivot_wider(names_from=time_h.x, values_from=blank_cor)
+hist(drop$blank_cor) #looking normalish but slightly skewed. try shapiro test
+shapiro_test(drop$blank_cor)
+#now we have complete cases. let's try anova
+anova_test(data=drop, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #this works!
+#trying log(blank_cor) since shapiro test tells us this data is not normal
+drop_log <- drop
+drop_log$log <- log10(drop$blank_cor)
+hist(drop_log$log)
+shapiro.test(drop_log$log) #still not normal...
+```
+#Rep2 ANOVA
+We got the ANOVA to work for g7 and f199 above - but we lost rep2. Can we analyze a small subset of data from later time point in order to test differences between rep2 and the others? Lets try
+```{r}
+view(wide) #for complete cases, we need time > 31 hours
+rep<- trunc_minus %>% filter(time_h.x>31) #greatly reduces observations, but maybe we can still detect differences
+anova_test(data=rep, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+glimpse(rep)
+#getting "between-subjects model is singular" error - try making factors
+#rep$strain <- factor(rep$strain, levels = unique(rep$strain))
+#rep$type <- factor(rep$type, levels = unique(rep$type))
+#rep$well <- factor(rep$well, levels = unique(rep$well))
+#anova_test(data=rep, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #still doesn't work
+#wide_rep<-  rep %>% pivot_wider(names_from=time_h.x, values_from=blank_cor) #turns out problem was I set time at 30 instead of 31, so cases were incomplete. Have fixed this now and hashed
+```
+#visualizing truncated data
+```{r}
+ggplot(data = rep, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+#Here, we are just getting data from late growth stages. May not be the most informative. But, it could point to something interesting. For example, it would appear that encapsulation with the alginate bead "equalizes" the strain differences seen in the free systems, since those data points are closer together. Does that warrant further investigation? 
+
+ggplot(data = drop, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+```
+I don't love losing portions of the data when trucating, especially because it forces us to cut important parts (the log phase) of bacterial growth. What can we do with non-parametric tests looking at all of the data? 
+#Non-parametric
+```{r}
+#nonparametric alternative to RM ANOVA is Friedman test
+library(ggpubr)
+ggboxplot(six_minus, x = "time_h.x", y = "blank_cor", add = "jitter")
+res.fried <- six_minus %>% friedman_test(blank_cor ~ time_h.x |well) #like a RM ANOVA (one factor only)
+res.fried # p = 0, no question of the effect of time (but that's obvious)
+#*sig effect of time (RM)
+#pairwise comparisons with Wilcoxon signed rank
+#pwc <- six_minus %>% wilcox_test(blank_cor ~ type, paired = TRUE, p.adjust.method = "bonferroni")
+#pwc 
+#pwc_strain <- six_minus %>% wilcox_test(blank_cor ~ strain, paired = TRUE, p.adjust.method = "bonferroni")
+#pwc_strain 
+#Wilcoxon doesn't apply here because I don't have paired samples, and I have more than two levels in my factors
+
+ggboxplot(six_minus, x = "type", y = "blank_cor", color = "type")
+kruskal.test(blank_cor ~ type, data = six_minus) #*sig effect of type
+
+ggboxplot(six_minus, x = "strain", y = "blank_cor", color = "strain")
+kruskal.test(blank_cor ~ strain, data = six_minus) #like a one-factor ANOVA by ranks
+#*sig effect of strain
+
+#Looking at curves as a whole
+
+#we could use the Kolmogorov-Smirnov Test to test whether samples come from same distribution
+bead<- six_minus %>% filter(type == "alginate_bead") #need to separate into two groups (alginate bead vs free)
+free<- six_minus %>% filter(type =="free")
+ks.test(bead$blank_cor, free$blank_cor) #distributions are different p<2.2e-16
+chitosan<- six_minus %>% filter(type == "chitosan_bead") #separate another group for another comparison
+ks.test(bead$blank_cor, chitosan$blank_cor) #(alginate bead vs chitosan bead, *p<2.2e-16)
+ks.test(free$blank_cor, chitosan$blank_cor) #(chitosan bead vs blank, p<2.2e-16)
+```
+#Experiment 2: Release from Microcapsules
+Let's get into my 2nd set of data
+```{r}
+#path to data
+data_location <- here::here("data","pilotwide.xlsx")
+pilotwide <- read_excel(data_location)
+
+#blanks vs. treatment
+ggplot(pilotwide, aes(factor(day), supernatant)) + 
+  geom_boxplot() + facet_wrap(~strain)
+
+#separate treatment groups from blanks
+g7 <- pilotwide %>% filter(strain == "G7")
+g7<- g7 %>% rename(reactor=reactor_no)
+
+#boxplots over time for supernatant
+ggplot(g7, aes(factor(day), supernatant)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+#boxplots over time for microcapsule
+capsule <- g7 %>% filter(treatment == "capsule")
+ggplot(capsule, aes(factor(day), microcapsule)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+#supernatant stats
+group_by(g7, coating) %>% 
+  summarise(mean = mean(supernatant, na.rm = TRUE),
+                                    sd = sd(supernatant, na.rm = TRUE))
+#microcapsule stats
+group_by(capsule, coating) %>% 
+  summarise(mean = mean(microcapsule, na.rm = TRUE),
+            sd = sd(microcapsule, na.rm = TRUE))
+#these stats are misleading because they average across days of the entire experiment, so of course the sd is high. 
+#need to see it broken down by day
+#supernatant stats
+g7 %>% group_by(coating, day) %>% 
+  summarise(mean = mean(supernatant, na.rm = TRUE),
+                                    sd = sd(supernatant, na.rm = TRUE))
+#microcapsule stats
+capsule %>% group_by(coating, day) %>% 
+  summarise(mean = mean(microcapsule, na.rm = TRUE),
+            sd = sd(microcapsule, na.rm = TRUE))
+#let's visualize this with a graph
+#for this, we need to make a dataframe with avg and sd
+#by taking avg and sd, we assume this data is normal. Let's check that
+#normality test
+g7 %>% shapiro_test(supernatant) #overall, the data is NOT normal
+hist(g7$supernatant) 
+g7 %>% group_by(day) %>% shapiro_test(supernatant) #grouping by day and coating means sample size is less than 3 and test can't be run
+#within days, data IS normal except for day 0
+g7 %>% group_by(coating) %>% shapiro_test(supernatant) #normal for each group
+#should we log transform to make data normal overall? 
+g7_log<- g7
+g7_log$suplog<- log10(g7_log$supernatant)
+g7_log$microlog<- log10(g7_log$microcapsule)
+hist(g7_log$suplog)
+hist(g7_log$microlog)
+shapiro.test(g7_log$suplog)
+shapiro.test(g7_log$microlog)
+#still not normal. 
+```
+With the small sample size of the experiment and the lack of normality, can I do parametric tests here? 
+#visualizing
+```{r}
+data_location <- here::here("data","pilotsum.xlsx")
+summ <- read_excel(data_location)
+
+microcapsule<- summ %>% filter(type == "microcapsule") %>% filter(meas == "mScarlet")
+supernatant<- summ %>% filter(type == "supernatant") %>% filter(meas == "mScarlet")
+sample<- microcapsule %>% filter(strain == "G7")
+
+#add grouped bar chart for supernatant
+super<- supernatant %>% filter(strain == "G7")
+ggplot(super, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+              position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Released in Supernatant")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                                "chitosan" = "olivedrab3", 
+                                "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))
+
+
+#add grouped bar chart for within microcapsules
+sample<- microcapsule %>% filter(strain == "G7")
+ggplot(sample, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+  geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+                position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Within Microcapsules")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                               "chitosan" = "olivedrab3", 
+                               "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))
+
+```
+
+#ANOVAs
+```{r}
+g7_mod <- g7 %>% dplyr::select(day, coating, reactor, supernatant)
+anova_test(data=g7_mod, dv=supernatant, wid=reactor, within="day", between="coating") 
+#all effects significant
+
+#need to look at effect of treatment!
+g7_mod2 <- g7 %>% dplyr::select(day, coating, reactor, supernatant, treatment)
+anova_test(data=g7_mod2, dv=supernatant, wid=reactor, within="day", between="treatment") 
+#yes, significant effect of treatment, day, and treatment*day
+
+cap_sup<- capsule %>% dplyr::select(day, coating, reactor, microcapsule, supernatant) %>% na.omit()
+capsule_mod <- capsule %>% dplyr::select(day, coating, reactor, microcapsule)
+anova_test(data=capsule_mod, dv=microcapsule, wid=reactor, within="day", between="coating") 
+#sig effect of day on bacteria level in capsule (no effect of coating)
+
+#does microcapsule concentration impact supernatant?
+#anova_test(data=cap_sup, dv=supernatant, wid=reactor, within=c("day","microcapsule"), between="coating") #think this is not working because microcapsule is numerical and R can't "divide" into groups based on those values
+#need a different statistical test to answer this question
+
+#visualize microcapsule concentration vs supernatant concentration
+ggplot(data = cap_sup, aes(x = microcapsule, y = supernatant, color = coating)) +
+  geom_point() + theme_classic() + xlab("Microcapsule Concentration") + ylab("Supernatant Concentration") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"))
+```
+Want to do some sort of regression to assess this relationship. But again, unsure about normality/linearity
+```{r}
+hist(cap_sup$supernatant) #does not look normal. use spearman rank correlation? 
+shapiro_test(cap_sup$supernatant) #not normal
+shapiro_test(cap_sup$microcapsule) #not normal
+#NOT NORMAL
+```
+#nonporametric
+```{r}
+#Spearman's rank correlation
+result2<- cor.test(cap_sup$microcapsule, cap_sup$supernatant, method = "spearman")
+result2 
+#strong relationship between concentration of microcapsule and concentration of supernatant
+
+#day vs concentration, show capsule and supernatant
+cap_sup_long<- gather(cap_sup, meas, value, microcapsule:supernatant, factor_key=TRUE)
+ggplot(data = cap_sup_long) +
+  geom_boxplot(aes(x=day, y=value, group=interaction(day, meas), fill=factor(meas))) + theme_classic() + xlab("Day") + ylab("Concentration") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + facet_wrap(~coating)
+```
+
+# Diving deeper
+```{r}
+#Boxplots of g7 show that free vs capsule treatments have different initial values. What if we normalize to day 0 in order to compare? This would also account for difference due to using sodium citrate to dissolve microcapsules 
+#look at super and sample, which have average and sd values
+sup_n<- super 
+chit<- sup_n %>% filter(coating == "chitosan")
+alg<- sup_n %>% filter(coating == "no coating")
+free<- sup_n %>% filter(coating == "free")
+
+chit$initial <- 5.78125
+alg$initial <- 24.54700
+free$initial <- 7315.25000
+
+all<- bind_rows(chit, alg, free)
+all$ratio<- all$avg_rfu/all$initial
+all$logratio<- log10(all$ratio)
+
+#boxplots over time for supernatant
+ggplot(all, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(all, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating) #think this is the correct way to present the data
+
+#let's try with microcapsule data
+micro_n<- sample
+chitm<- micro_n %>% filter(coating == "chitosan")
+algm<- micro_n %>% filter(coating == "no coating")
+
+chitm$initial <- 956.3750
+algm$initial <- 1487.8750
+
+allm<- bind_rows(chitm, algm)
+allm$ratio<- allm$avg_rfu/allm$initial
+allm$logratio<- log10(allm$ratio)
+
+ggplot(allm, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(allm, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+```
+This tells us that the increase in supernatant bacterial levels relative to day 0 is greater for the microcapsules rather than free bacteria (because free bacteria start with higher initial level) - what does presenting the data in this way mean? is it biologically relevant? it also shows that the capsules help maintain a higher relative level by day 42, compared to free (which we do care about). Basically, demonstrates that capsule is acting as a release vehicle, whereas free is instant delivery - IMPLICATION of day 42
+- still need to rerun stats on ratio

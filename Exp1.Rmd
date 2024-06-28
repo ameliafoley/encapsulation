@@ -1,0 +1,363 @@
+---
+title: "Stats_Exp1"
+output: html_document
+date: '2024-03-22'
+---
+
+```{r}
+library(readxl) #for loading Excel files
+library(dplyr) #for data processing
+library(here) #to set paths
+library(tidyverse)
+library(rstatix)
+#path to data
+data_location <- here::here("data","odwells.xlsx")
+data_location2 <- here::here("data","odwells_six.xlsx")
+#load data. 
+data <- read_excel(data_location)
+six <- read_excel(data_location2)
+
+##What does the growth data look like? 
+ggplot(data = six, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#Since we have 3 wells of each type and lots of time points, these graphs look messy. Let's see the averages of the wells
+#data for average of 3 groups
+glimpse(data)
+data_minus<- data %>% dplyr::select(time_h.x, strain, type, sample, blank_cor)
+ggplot(data = data_minus, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#Now, let's try stats for the dataset with all individual subjects
+glimpse(six)
+six_minus<- six %>% dplyr::select(time_h.x, strain, type, sample, blank_cor, well)
+anova_test(data=six_minus, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+
+```
+With the ANOVA above, we see main effects and interactions. However, I'm not sure we can use this test because the data isn't normally distributed. Let's check that. 
+```{r}
+hist(six_minus$blank_cor)
+#This shows us that our distribution does not look normal. There are lots of zero and near-zero values that skew this, especially since we have a bacterial strain with a long lag time. 
+#Can we transform via log to normalize this? 
+six_trans <- six_minus
+six_trans$plus <- six_trans$blank_cor+1 #adding +1 since we have zero values
+six_trans$log <- log10(six_trans$plus)
+six_trans$sqrt <- six_trans$blank_cor**(1/2)
+
+hist(six_trans$log) #still not normal
+hist(six_trans$sqrt) #still not normal
+```
+#G7 and F199 ANOVA
+These transformations aren't normalizing the data. Let's try truncating the data - we can infer lag time without all of the data present, so we don't neccesarily need all of those near zero values
+```{r}
+trunc <- six_minus %>% filter(blank_cor>0.12) %>% filter(time_h.x>0.5)
+hist(trunc$blank_cor) #now, this looks normal
+shapiro_test(trunc$blank_cor) #this still tells us it's not normal...is it becuase it's bound at zero? 
+#can we run anova on this dataset? 
+#anova_test(data=trunc, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+#getting contrast error. Let's try removing unsued variable, sample
+trunc_minus <- trunc %>% dplyr::select(!sample)
+#anova_test(data=trunc_minus, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+#getting contrast error. Seemed like problem could be that there aren't the same time points for all subjects. Let's check that
+#maybe it would be easier to see "complete cases" for time if time was wide instead of long. let's try that
+wide<-  trunc_minus %>% pivot_wider(names_from=time_h.x, values_from=blank_cor)
+#this makes it easier to see missing cases. most come from rep2. Let's exclude it for now
+drop<- trunc_minus %>% filter(strain != "rep2") %>% filter(time_h.x>13)
+#see how this looks
+wide_drop<-  drop %>% pivot_wider(names_from=time_h.x, values_from=blank_cor)
+hist(drop$blank_cor) #looking normalish but slightly skewed. try shapiro test
+shapiro_test(drop$blank_cor)
+#now we have complete cases. let's try anova
+anova_test(data=drop, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #this works!
+#trying log(blank_cor) since shapiro test tells us this data is not normal
+drop_log <- drop
+drop_log$log <- log10(drop$blank_cor)
+hist(drop_log$log)
+shapiro.test(drop_log$log) #still not normal...
+```
+#Rep2 ANOVA
+We got the ANOVA to work for g7 and f199 above - but we lost rep2. Can we analyze a small subset of data from later time point in order to test differences between rep2 and the others? Lets try
+```{r}
+view(wide) #for complete cases, we need time > 31 hours
+rep<- trunc_minus %>% filter(time_h.x>31) #greatly reduces observations, but maybe we can still detect differences
+anova_test(data=rep, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+glimpse(rep)
+#getting "between-subjects model is singular" error - try making factors
+#rep$strain <- factor(rep$strain, levels = unique(rep$strain))
+#rep$type <- factor(rep$type, levels = unique(rep$type))
+#rep$well <- factor(rep$well, levels = unique(rep$well))
+#anova_test(data=rep, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #still doesn't work
+#wide_rep<-  rep %>% pivot_wider(names_from=time_h.x, values_from=blank_cor) #turns out problem was I set time at 30 instead of 31, so cases were incomplete. Have fixed this now and hashed
+```
+#visualizing truncated data
+```{r}
+ggplot(data = rep, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+#Here, we are just getting data from late growth stages. May not be the most informative. But, it could point to something interesting. For example, it would appear that encapsulation with the alginate bead "equalizes" the strain differences seen in the free systems, since those data points are closer together. Does that warrant further investigation? 
+
+ggplot(data = drop, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+```
+I don't love losing portions of the data when trucating, especially because it forces us to cut important parts (the log phase) of bacterial growth. What can we do with non-parametric tests looking at all of the data? 
+#Non-parametric
+```{r}
+#nonparametric alternative to RM ANOVA is Friedman test
+library(ggpubr)
+ggboxplot(six_minus, x = "time_h.x", y = "blank_cor", add = "jitter")
+res.fried <- six_minus %>% friedman_test(blank_cor ~ time_h.x |well) #like a RM ANOVA (one factor only)
+res.fried # p = 0, no question of the effect of time (but that's obvious)
+#*sig effect of time (RM)
+#pairwise comparisons with Wilcoxon signed rank
+#pwc <- six_minus %>% wilcox_test(blank_cor ~ type, paired = TRUE, p.adjust.method = "bonferroni")
+#pwc 
+#pwc_strain <- six_minus %>% wilcox_test(blank_cor ~ strain, paired = TRUE, p.adjust.method = "bonferroni")
+#pwc_strain 
+#Wilcoxon doesn't apply here because I don't have paired samples, and I have more than two levels in my factors
+
+ggboxplot(six_minus, x = "type", y = "blank_cor", color = "type")
+kruskal.test(blank_cor ~ type, data = six_minus) #*sig effect of type
+
+ggboxplot(six_minus, x = "strain", y = "blank_cor", color = "strain")
+kruskal.test(blank_cor ~ strain, data = six_minus) #like a one-factor ANOVA by ranks
+#*sig effect of strain
+
+#Looking at curves as a whole
+
+#we could use the Kolmogorov-Smirnov Test to test whether samples come from same distribution
+bead<- six_minus %>% filter(type == "alginate_bead") #need to separate into two groups (alginate bead vs free)
+free<- six_minus %>% filter(type =="free")
+ks.test(bead$blank_cor, free$blank_cor) #distributions are different p<2.2e-16
+chitosan<- six_minus %>% filter(type == "chitosan_bead") #separate another group for another comparison
+ks.test(bead$blank_cor, chitosan$blank_cor) #(alginate bead vs chitosan bead, *p<2.2e-16)
+ks.test(free$blank_cor, chitosan$blank_cor) #(chitosan bead vs blank, p<2.2e-16)
+```
+# Characterizing the curves
+```{r}
+#using six_minus and calculating first and second derivative to characterize our curves
+der<- six_minus
+#der<- der %>% group_by(well) %>% mutate(d1 = diff(blank_cor)/diff(time_h.x))
+x<- der$time_h.x
+y<- der$blank_cor
+plot(x,y)
+
+#website: https://stackoverflow.com/questions/48706850/couple-a-function-inside-mutate-dplyr-r-calculate-second-derivative
+
+df <-der %>% group_by(well) %>% 
+  mutate(first_d = blank_cor - lag(blank_cor))
+
+#df2 <-der %>% group_by(well) %>% filter(n() > 1) %>%
+  #mutate(first_d = blank_cor - lag(blank_cor))
+
+drv <- function(x, y) c(NA, (diff(y) /diff(x))) 
+middle_pts <- function(x) c(NA, (x[-1] - diff(x) /2))
+
+df<- df %>%
+   group_by(well)  %>%
+   mutate(second_d = drv(middle_pts(time_h.x), drv(time_h.x, blank_cor)))
+
+#df %>% plot(time_h.x, first_d)
+alg_g7 <- df %>% filter(type == "alginate_bead", strain == "g7")
+ggplot(data = alg_g7, aes(x = time_h.x, y = first_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+#I think this looks funny because of variability between adjacent time points. Let's take every 3rd time point and see how it looks 
+
+#three<- data_minus %>% group_by(sample, time_h.x) %>% data_minus[seq(1, nrow(six_minus), 2), ]
+three<- data_minus
+#testing method of keeping n rows
+df2<- data_minus %>% group_by(sample, time_h.x) %>% slice(seq(1, nrow(data_minus), 2)) #keeping every other row to eliminate minor variability between adjacent measurements
+
+df2 <-three %>% group_by(sample) %>% 
+  mutate(first_d = blank_cor - lag(blank_cor))
+
+#drv <- function(x, y) c(NA, (diff(y) /diff(x))) 
+#middle_pts <- function(x) c(NA, (x[-1] - diff(x) /2))
+
+df2<- df2 %>%
+   group_by(sample)  %>%
+   mutate(second_d = drv(middle_pts(time_h.x), drv(time_h.x, blank_cor)))
+
+alg_g72 <- df2 %>% filter(type == "alginate_bead", strain == "g7")
+ggplot(data = alg_g72, aes(x = time_h.x, y = first_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+ggplot(data = alg_g72, aes(x = time_h.x, y = second_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#calculate peak of each derivative
+calc<- df2
+#calc<- calc %>% group_by(sample) %>% mutate(peak_1 = max(first_d))
+#calc$peak_1<- calc %>% group_by(sample) %>% max(first_d)
+glimpse(calc)
+df2 %>% group_by(sample)
+calc<- na.omit(calc)
+#max(calc$first_d)
+
+calc$time_h.x[which.max(calc$first_d)] #this gives me the x value for the max y. Now I need to figure out how to apply this to everything
+#probably best to subset
+
+calc_test<- calc %>% group_by(sample) %>% mutate(peak_1 = calc$time_h.x[which.max(calc$first_d)]) #doesn't apply by sample
+unique(calc$sample)
+
+#subsetting
+b_f199_sa<- calc %>% subset(sample == "b_f199_sa") 
+b_rep2_sa<- calc %>% subset(sample == "b_rep2_sa")
+b_g7_c<- calc %>% subset(sample == "b_g7_c")
+f_f199<- calc %>% subset(sample == "f_f199")
+f_rep2<- calc %>% subset(sample == "f_rep2")
+b_g7_sa<- calc %>% subset(sample == "b_g7_sa")
+b_f199_c<- calc %>% subset(sample == "b_f199_c")
+b_rep2_c<- calc %>% subset(sample == "b_rep2_c")
+f_g7<- calc %>% subset(sample == "f_g7")
+
+#mutating
+b_f199_sa<- b_f199_sa %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+b_rep2_sa<- b_rep2_sa %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+b_g7_c<- b_g7_c %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+f_f199<- f_f199 %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+f_rep2<- f_rep2 %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+b_g7_sa<- b_g7_sa %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+b_f199_c<- b_f199_c %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+b_rep2_c<- b_rep2_c %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+f_g7<- f_g7 %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)])
+
+allder<- bind_rows(b_f199_sa, b_rep2_sa, b_g7_c, f_f199, f_rep2, b_g7_sa, b_f199_c, b_rep2_c, f_g7)
+#okay, this is what I wanted. But, since I start with the averages, I don't know if I can run stats on this. I think I actually need all three reps to get three different peaks. Let's see if I can repeat this with all the data
+```
+
+```{r}
+df3<- six_minus %>% group_by(well, time_h.x) %>% slice(seq(1, nrow(six_minus), 2)) #keeping every other row to eliminate minor variability between adjacent measurements
+
+df3 <-df3 %>% group_by(well) %>% 
+  mutate(first_d = blank_cor - lag(blank_cor))
+
+#drv <- function(x, y) c(NA, (diff(y) /diff(x))) 
+#middle_pts <- function(x) c(NA, (x[-1] - diff(x) /2))
+
+df3<- df3 %>%
+   group_by(sample)  %>%
+   mutate(second_d = drv(middle_pts(time_h.x), drv(time_h.x, blank_cor)))
+
+alg_g73 <- df3 %>% filter(type == "alginate_bead", strain == "g7")
+ggplot(data = alg_g73, aes(x = time_h.x, y = first_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+ggplot(data = alg_g73, aes(x = time_h.x, y = second_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
+#calc$time_h.x[which.max(calc$first_d)] #this gives me the x value for the max y. Now I need to figure out how to apply this to everything
+#probably best to subset
+
+df3<- df3 %>% group_by(well) %>% mutate(peak_1 = time_h.x[which.max(first_d)], 
+                                 peak_2 = time_h.x[which.max(second_d)]) #gives us peak for first and second derivative WITHIN each well (each independent sample)
+
+#now, let's extract data to a clean data frame, where we only need the 
+
+clean<- df3 %>% dplyr::select(strain, type, sample, well, peak_1, peak_2) %>% unique()
+
+library("writexl")
+data_location4 <- here::here("data","deriv.xlsx")
+write_xlsx(clean, data_location4)
+data_location5 <- here::here("data","allderiv.xlsx")
+write_xlsx(df3, data_location5)
+
+ggplot(data = df3, aes(x = time_h.x, y = second_d, color = strain, shape = type)) +
+  geom_line() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for F199 & G7 Systems")+
+  facet_wrap(~ sample)+
+  scale_color_brewer(palette="Set2")
+```
+

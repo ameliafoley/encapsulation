@@ -37,6 +37,10 @@ data_wide <- spread(test, day, avg_rfu)
 
 #need to make microcapsule and supernatant values wide and not long, but keep days long
 wide <- spread(test, type, avg_rfu)
+#this is what I'll work with, so let's export it. 
+library("writexl")
+data_location4 <- here::here("data","pilotwide.xlsx")
+write_xlsx(wide, data_location4)
 
 ggplot(wide, aes(factor(day), supernatant)) + 
   geom_boxplot() + facet_wrap(~reactor_no, scale = "free")

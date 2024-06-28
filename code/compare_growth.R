@@ -10,6 +10,23 @@ data_location2 <- here::here("data","odwells_six.xlsx")
 data <- read_excel(data_location)
 six <- read_excel(data_location2)
 
+#library(MASS)
+#b <- boxcox(lm(test_blank ~ 1, data = six))
+# Exact lambda
+#lambda <- b$x[which.max(b$y)]
+#lambda
+ggplot(data = six, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
+  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("Avg OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"),
+        axis.text.x=element_text(angle = 0, hjust = 0, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        strip.text = element_text(size = 14)) +ggtitle("OD600 for Rep2, F199, & G7 Systems")+
+  facet_wrap(~ type)+
+  scale_color_brewer(palette="Set2")
+
 six %>% filter(strain == "rep2", type == "alginate_bead") %>% dplyr::select(well) %>% unique()
 
 glimpse(data)
@@ -20,6 +37,17 @@ glimpse(six)
 six_minus<- six %>% dplyr::select(time_h.x, strain, type, sample, blank_cor, well)
 anova_test(data=six_minus, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
 #this works! 3 factor repeated measures anova 
+
+#THURSDAY: drop Rep2, truncate by time, make sure times are the same, try again
+#think not running because there aren't "complete cases" for all time points due to truncation
+
+#since this data(six_minus) works, let's subdivide it and try again
+div<- six_minus %>% dplyr::filter(blank_cor>0.1)
+anova_test(data=div, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #still not working
+#only subdivided data, but this anova test does not work. why????? "Error in contrasts"
+#let's try removing unused variable, sample
+div<- div %>% select(!sample)
+anova_test(data=div, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type")) #still not working
 
 #data for 3 wells of each type
 ggplot(data = six_minus, aes(x = time_h.x, y = blank_cor, color = strain, shape = type)) +
@@ -158,13 +186,18 @@ ggplot(data = one, aes(x = time_h.x, y = blank_cor, color = strain, shape = type
         strip.text = element_text(size = 14)) +ggtitle("Average OD600 for Rep2, F199, & G7 Systems")+
   facet_wrap(~ type)+
   scale_color_brewer(palette="Set2")
-
+#and we can still distinguish differences in growth curves on the truncated graphs
 #what do the statistical tests look like when we perform them on truncated data?
 one_clean<- one %>% dplyr::select(time_h.x, strain, type, blank_cor, well)
 one_clean$od<- one_clean$blank_cor
 one_clean$log<- log10(one_clean$od)
 od<- one_clean %>% dplyr::select(time_h.x, strain, type, od, well)
 one_log<- one_clean %>% dplyr::select(time_h.x, strain, type, log, well)
+
+class(one_clean$time_h.x)
+class(one_clean$type)
+class(one_clean$strain)
+
 
 anova_test(data=od, dv=od, wid=well, within="time_h.x", between=c("type"))
 anova_test(data=one_log, dv=log, wid=well, within="time_h.x", between=c("strain","type"))
@@ -232,11 +265,27 @@ glimpse(one_clean)
 lapply(one_clean[c('blank_cor', 'time_h.x', 'strain', 'type', 'well')], unique)
 
 str(one_clean) #variables are not factors
-one_clean$strain <- as.factor(one_clean$strain)
-one_clean$type <- as.factor(one_clean$type)
+one_clean$strain <- factor(one_clean$strain, levels = unique(one_clean$strain))
+one_clean$type <- factor(one_clean$type, levels = unique(one_clean$type))
+one_clean$well <- factor(one_clean$well, levels = unique(one_clean$well))
+
+one_clean$time_h.x_test <- factor(as.numeric(one_clean$time_h.x), levels = unique(one_clean$time_h.x))
+
 
 #try again with variables as factors
-anova_test(data=one_clean, dv=blank_cor, wid=well, within="time_h.x", between=c("strain", "type"))
+
+class(one_clean$strain)
+levels(one_clean$strain)
+levels(one_clean$type)
+anova_test(data=one_clean, dv=blank_cor, wid=well, within=time_h.x_test, between=c(strain, type))
+
+df <- tibble(ID = as.factor(rep(1:6, each = 2)),
+             Score = sample(1:15, 12, replace = TRUE),
+             Time = as.factor(rep(1:2, times = 6)),
+             Group = as.factor(rep(1:2, each = 6)))
+
+one_clean %>% anova_test(blank_cor~time_h.x_test*type + Error())
+
 
 
 #testing for normality

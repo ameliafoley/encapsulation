@@ -258,7 +258,8 @@ ggplot(data = sample, aes(x = jitter(day, 0.25), y = value, color = coating, sha
 #take means
 summ <- test %>% group_by(day, meas, type, coating, strain, treatment) %>% summarize(avg_rfu = mean(value), 
                                                            sd = sd(value))
-
+data_location2 <- here::here("data","pilotsum.xlsx")
+write_xlsx(summ, data_location2)
 microcapsule<- summ %>% filter(type == "microcapsule") %>% filter(meas == "mScarlet")
 supernatant<- summ %>% filter(type == "supernatant") %>% filter(meas == "mScarlet")
 sample<- microcapsule %>% filter(strain == "G7")

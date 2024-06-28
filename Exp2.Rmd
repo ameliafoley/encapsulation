@@ -1,0 +1,331 @@
+---
+title: "Stats_Exp2"
+output: html_document
+date: '2024-03-22'
+---
+
+#Experiment 2: Release from Microcapsules
+Let's get into my 2nd set of data
+```{r}
+library(readxl) #for loading Excel files
+library(dplyr) #for data processing
+library(here) #to set paths
+library(tidyverse)
+library(rstatix)
+#path to data
+data_location <- here::here("data","pilotwide.xlsx")
+pilotwide <- read_excel(data_location)
+
+#blanks vs. treatment
+ggplot(pilotwide, aes(factor(day), supernatant)) + 
+  geom_boxplot() + facet_wrap(~strain)
+
+#separate treatment groups from blanks
+g7 <- pilotwide %>% filter(strain == "G7")
+g7<- g7 %>% rename(reactor=reactor_no)
+
+#boxplots over time for supernatant
+ggplot(g7, aes(factor(day), supernatant)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+#boxplots over time for microcapsule
+capsule <- g7 %>% filter(treatment == "capsule")
+ggplot(capsule, aes(factor(day), microcapsule)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+#supernatant stats
+group_by(g7, coating) %>% 
+  summarise(mean = mean(supernatant, na.rm = TRUE),
+                                    sd = sd(supernatant, na.rm = TRUE))
+#microcapsule stats
+group_by(capsule, coating) %>% 
+  summarise(mean = mean(microcapsule, na.rm = TRUE),
+            sd = sd(microcapsule, na.rm = TRUE))
+#these stats are misleading because they average across days of the entire experiment, so of course the sd is high. 
+#need to see it broken down by day
+#supernatant stats
+g7 %>% group_by(coating, day) %>% 
+  summarise(mean = mean(supernatant, na.rm = TRUE),
+                                    sd = sd(supernatant, na.rm = TRUE))
+#microcapsule stats
+capsule %>% group_by(coating, day) %>% 
+  summarise(mean = mean(microcapsule, na.rm = TRUE),
+            sd = sd(microcapsule, na.rm = TRUE))
+#let's visualize this with a graph
+#for this, we need to make a dataframe with avg and sd
+#by taking avg and sd, we assume this data is normal. Let's check that
+#normality test
+g7 %>% shapiro_test(supernatant) #overall, the data is NOT normal
+hist(g7$supernatant) 
+g7 %>% group_by(day) %>% shapiro_test(supernatant) #grouping by day and coating means sample size is less than 3 and test can't be run
+#within days, data IS normal except for day 0
+g7 %>% group_by(coating) %>% shapiro_test(supernatant) #normal for each group
+#should we log transform to make data normal overall? 
+g7_log<- g7
+g7_log$suplog<- log10(g7_log$supernatant)
+g7_log$microlog<- log10(g7_log$microcapsule)
+hist(g7_log$suplog)
+hist(g7_log$microlog)
+shapiro.test(g7_log$suplog)
+shapiro.test(g7_log$microlog)
+#still not normal. 
+```
+With the small sample size of the experiment and the lack of normality, can I do parametric tests here? 
+#visualizing
+```{r}
+data_location <- here::here("data","pilotsum.xlsx")
+summ <- read_excel(data_location)
+
+microcapsule<- summ %>% filter(type == "microcapsule") %>% filter(meas == "mScarlet")
+supernatant<- summ %>% filter(type == "supernatant") %>% filter(meas == "mScarlet")
+sample<- microcapsule %>% filter(strain == "G7")
+
+#add grouped bar chart for supernatant
+super<- supernatant %>% filter(strain == "G7")
+ggplot(super, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+              position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Released in Supernatant")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                                "chitosan" = "olivedrab3", 
+                                "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))
+
+
+#add grouped bar chart for within microcapsules
+sample<- microcapsule %>% filter(strain == "G7")
+ggplot(sample, aes(fill=coating, y=avg_rfu, x = as.factor(day))) + 
+  geom_bar(position="dodge", stat="identity")+
+  geom_errorbar(aes(ymin=avg_rfu-sd, ymax=avg_rfu+sd), width=.2,
+                position=position_dodge(.9))+
+  theme_classic() + 
+  xlab("Day") + 
+  ylab("RFU Value")+ 
+  theme(axis.text.x=element_text(angle = 0, hjust = .5, size = 15),
+        axis.title = element_text(size = 16),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 14),
+        plot.title = element_text(size = 18, hjust = 0.5),
+        legend.position = "bottom", 
+        panel.grid.minor.y = element_line(color = "grey", 
+                                          linetype = "dashed")) +
+  ggtitle("Bacterial Levels Within Microcapsules")+
+  theme(strip.text = element_text(
+    size = 14)) +
+  scale_fill_manual(values = c("no coating" = "aquamarine4", 
+                               "chitosan" = "olivedrab3", 
+                               "free" = "coral1"))+
+  scale_x_discrete(breaks=c(0,3,7,11,14,24,42))
+
+library("writexl")
+data_location4 <- here::here("data","super.xlsx")
+write_xlsx(super, data_location4)
+
+data_location5 <- here::here("data","micro.xlsx")
+write_xlsx(sample, data_location5)
+```
+
+#ANOVAs
+```{r}
+g7_mod <- g7 %>% dplyr::select(day, coating, reactor, supernatant)
+anova_test(data=g7_mod, dv=supernatant, wid=reactor, within="day", between="coating") 
+#all effects significant
+
+#need to look at effect of treatment!
+g7_mod2 <- g7 %>% dplyr::select(day, coating, reactor, supernatant, treatment)
+anova_test(data=g7_mod2, dv=supernatant, wid=reactor, within="day", between="treatment") 
+#yes, significant effect of treatment, day, and treatment*day
+
+cap_sup<- capsule %>% dplyr::select(day, coating, reactor, microcapsule, supernatant) %>% na.omit()
+capsule_mod <- capsule %>% dplyr::select(day, coating, reactor, microcapsule)
+anova_test(data=capsule_mod, dv=microcapsule, wid=reactor, within="day", between="coating") 
+#sig effect of day on bacteria level in capsule (no effect of coating)
+
+#does microcapsule concentration impact supernatant?
+#anova_test(data=cap_sup, dv=supernatant, wid=reactor, within=c("day","microcapsule"), between="coating") #think this is not working because microcapsule is numerical and R can't "divide" into groups based on those values
+#need a different statistical test to answer this question
+
+#visualize microcapsule concentration vs supernatant concentration
+ggplot(data = cap_sup, aes(x = microcapsule, y = supernatant, color = coating)) +
+  geom_point() + theme_classic() + xlab("Microcapsule Concentration") + ylab("Supernatant Concentration") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"))
+```
+Want to do some sort of regression to assess this relationship. But again, unsure about normality/linearity
+```{r}
+hist(cap_sup$supernatant) #does not look normal. use spearman rank correlation? 
+shapiro_test(cap_sup$supernatant) #not normal
+shapiro_test(cap_sup$microcapsule) #not normal
+#NOT NORMAL
+```
+#nonporametric
+```{r}
+#Spearman's rank correlation
+result2<- cor.test(cap_sup$microcapsule, cap_sup$supernatant, method = "spearman")
+result2 
+#strong relationship between concentration of microcapsule and concentration of supernatant
+
+#day vs concentration, show capsule and supernatant
+cap_sup_long<- gather(cap_sup, meas, value, microcapsule:supernatant, factor_key=TRUE)
+ggplot(data = cap_sup_long) +
+  geom_boxplot(aes(x=day, y=value, group=interaction(day, meas), fill=factor(meas))) + theme_classic() + xlab("Day") + ylab("Concentration") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + facet_wrap(~coating)
+```
+
+# Diving deeper
+```{r}
+#Boxplots of g7 show that free vs capsule treatments have different initial values. What if we normalize to day 0 in order to compare? This would also account for difference due to using sodium citrate to dissolve microcapsules 
+#look at super and sample, which have average and sd values
+sup_n<- super 
+chit<- sup_n %>% filter(coating == "chitosan")
+alg<- sup_n %>% filter(coating == "no coating")
+free<- sup_n %>% filter(coating == "free")
+
+chit$initial <- 5.78125
+alg$initial <- 24.54700
+free$initial <- 7315.25000
+
+all<- bind_rows(chit, alg, free)
+all$ratio<- all$avg_rfu/all$initial
+all$logratio<- log10(all$ratio)
+
+#boxplots over time for supernatant
+ggplot(all, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(all, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating) #think this is the correct way to present the data
+
+#let's try with microcapsule data
+micro_n<- sample
+chitm<- micro_n %>% filter(coating == "chitosan")
+algm<- micro_n %>% filter(coating == "no coating")
+
+chitm$initial <- 956.3750
+algm$initial <- 1487.8750
+
+allm<- bind_rows(chitm, algm)
+allm$ratio<- allm$avg_rfu/allm$initial
+allm$logratio<- log10(allm$ratio)
+
+ggplot(allm, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(allm, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+#saving data
+library("writexl")
+data_location4 <- here::here("data","all.xlsx")
+write_xlsx(allm, data_location4)
+
+data_location5 <- here::here("data","allm.xlsx")
+write_xlsx(allm, data_location5)
+
+```
+This tells us that the increase in supernatant bacterial levels relative to day 0 is greater for the microcapsules rather than free bacteria (because free bacteria start with higher initial level) - what does presenting the data in this way mean? is it biologically relevant? it also shows that the capsules help maintain a higher relative level by day 42, compared to free (which we do care about). Basically, demonstrates that capsule is acting as a release vehicle, whereas free is instant delivery - IMPLICATION of day 42
+- still need to rerun stats on ratio
+# Percent release
+```{r}
+#using dataset g7 to perform manipulation to calculate ratio, since supernatant and microcapsule concentration are related
+#manipulation only relevant for microcapsule groups, so let's filter
+man<- g7 %>% mutate(ratio = supernatant/(supernatant+microcapsule))
+#how does this look? 
+ggplot(man, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+# ratio for free is automatically 1 (supernatant/supernatant + 0 since no microcapsule)
+man <- man %>% mutate(ratio = replace_na(ratio, 1))
+
+#plot again
+ggplot(man, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+#need to log transform since these are ratios
+man <- man %>% mutate(logratio = log10(ratio))
+
+data_location4 <- here::here("data","release.xlsx")
+write_xlsx(man, data_location4)
+
+#plot logs
+ggplot(man, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+```
+# Redoing relative with duplicates
+```{r}
+#Boxplots of g7 show that free vs capsule treatments have different initial values. What if we normalize to day 0 in order to compare? This would also account for difference due to using sodium citrate to dissolve microcapsules 
+#look at super and sample, which have average and sd values
+sup_n<- g7 %>% select(!microcapsule)
+
+test<- sup_n
+glimpse(test)
+test$reactor <- as.character((test$reactor))
+
+test <- test %>% mutate(initial = case_when(endsWith(test$reactor, "1") ~ "5.5625",
+                                            endsWith(test$reactor, "2") ~ "6.0000", 
+                                            endsWith(test$reactor, "3") ~ "26.875", 
+                                            endsWith(test$reactor, "4") ~ "22.219", 
+                                            endsWith(test$reactor, "5") ~ "7599.35", 
+                                            endsWith(test$reactor, "6") ~ "7031.15"))
+
+relative<- test
+glimpse(relative)
+relative$initial <- as.numeric(relative$initial)
+
+relative$ratio<- relative$supernatant/relative$initial
+relative$logratio<- log10(relative$ratio)
+
+#boxplots over time for supernatant
+ggplot(relative, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(relative, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating) #think this is the correct way to present the data
+
+#let's try with microcapsule data
+micro_n<- g7 %>% select(!supernatant) %>% filter(treatment == "capsule")
+
+micro_n$reactor <- as.character(micro_n$reactor)
+micro_n <- micro_n %>% mutate(initial = case_when(endsWith(micro_n$reactor, "1") ~ "866.410",
+                                            endsWith(micro_n$reactor, "2") ~ "1046.340", 
+                                            endsWith(micro_n$reactor, "3") ~ "1216.600", 
+                                            endsWith(micro_n$reactor, "4") ~ "1759.150"))
+relative_m<- micro_n
+glimpse(relative_m)
+relative_m$initial <- as.numeric(relative_m$initial)
+
+relative_m$ratio<- relative_m$microcapsule/relative_m$initial
+relative_m$logratio<- log10(relative_m$ratio)
+
+#boxplots over time for supernatant
+ggplot(relative_m, aes(factor(day), ratio)) + 
+  geom_boxplot() + facet_wrap(~coating)
+
+ggplot(relative_m, aes(factor(day), logratio)) + 
+  geom_boxplot() + facet_wrap(~coating) #think this is the correct way to present the data
+
+
+#saving data
+library("writexl")
+data_location4 <- here::here("data","relative_super.xlsx")
+write_xlsx(relative, data_location4)
+
+data_location5 <- here::here("data","relative_micro.xlsx")
+write_xlsx(relative_m, data_location5)
+
+```
+
