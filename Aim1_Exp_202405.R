@@ -402,12 +402,14 @@ all_exp<- A_all %>% full_join(B_all) %>% full_join(C_all) %>% full_join(D_all)
 all_sample<- all_exp %>% drop_na(reactor)
 write_xlsx(all_sample, here::here("data", "all_sample.xlsx"))
 
+#get just sample data without controls
 is.na(B_all$reactor) %>% sum() #only 60 are NAs
 A_sample<- A_all %>% drop_na(reactor)
 B_sample<- B_all %>% drop_na(reactor)
 C_sample<- C_all %>% drop_na(reactor)
 D_sample<- D_all %>% drop_na(reactor)
 
+#save as Excel
 data_location2 <- here::here("data","pilotdata.xlsx")
 write_xlsx(A_sample, here::here("data", "A_text.xlsx"))
 write_xlsx(B_sample, here::here("data","B_test.xlsx"))
@@ -424,182 +426,11 @@ ggplot(data = B_sample, aes(x = jitter(day, 0.3), y = value, color = strain, sha
 
 #this data layout allows me to evaluate data roughly in JMP. May need to do more subsetting later and definitely need to figure out best visualization
 
-#now, need code to combine plate count data with RFUs for comparison
-#load data
-long_plate <- read_excel(here::here("data", "longterm_platecounts.xlsx"))
-mix <- all_exp %>% filter(sample_type == "mixsup")
-plate_join<- long_plate %>% 
-  left_join(mix, by = c("exp", "day", "reactor")) 
-big_join <- long_plate %>% 
-  left_join(all_exp, by = c("exp", "day", "reactor")) 
-write_xlsx(big_join, here::here("data", "big_join.xlsx"))
-ggplot(data = plate_join, aes(x = value, y = cfu, color = meas)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("RFU") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type + meas) + geom_abline(aes(intercept = 2e+6, slope = 60016)) + 
-  geom_abline(aes(intercept = -2e+7, slope = 33585)) +
-  geom_smooth(method='lm')
-#+ xlim (0, 12500) + ylim(2e7, 8e8)
-#this plot looks less crazy when axis is expanding..really these are all similar samples at the same time point, so it's
-#like looking at a really zoomed in plot. hopefully linear standard curve will appear when more diverse data points are added. 
-#really, it's good that all of these samples from the same day (14) are in a similar range of cfu/mL??
-
-#with the lines from the standard curve, these data points actually look a little better. wonder if I could get an r squared value to see how
-#well these points fit those lines. when I put in excel, line of best fit is actually negative...that's not good. 
-#looking at this plot again on 6/5/24 - points and line of best fit for mScarlet are actually not too far off from the 
-#standard curve! this could actually be working??
-ggplot(data = big_join, aes(x = value, y = cfu, color = meas)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("RFU") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type + meas) + 
-  geom_smooth(method='lm')
-#here, see best relationship between dissolved RFU and CFU 
-cap<- big_join %>% filter(sample_type == c("capsule", "dissolved"))
-ggplot(data = cap, aes(x = value, y = cfu, color = meas)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("RFU") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type + meas) + geom_smooth(method='lm')
-
-ggplot(data = big_join, aes(x = day, y = cfu, color = meas)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("Day") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("CFU Values Over Time") + geom_smooth() + facet_wrap(~encapsulation_treat)
-
-ggplot(data = all_sample, aes(x = day, y = value, color = meas)) +
-  geom_boxplot()+
-  theme_classic() + 
-  xlab("RFU") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type)
-
-samples<- all_sample %>% filter(strain != "blank") %>% filter(sample_type != "super")
-super<- samples %>% filter(sample_type=="mixsup")
-ggplot(data = super, aes(x = factor(day), y = value, color = meas)) +
-  geom_boxplot()+
-  theme_classic() + 
-  xlab("Day") + 
-  ylab("RFU Value")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type +encapsulation_treat)
-
-btest<- B_all %>% filter(strain != "blank") %>% filter(sample_type != "super") %>% filter(meas == "mVenus")
-ggplot(data = btest, aes(x = factor(day), y = value, color = encapsulation_treat)) +
-  geom_point()+
-  stat_summary(fun = mean, 
-               fun.min = function(x) mean(x) - sd(x)/sqrt(length(x)), 
-               fun.max = function(x) mean(x) + sd(x)/sqrt(length(x)),
-               geom = 'errorbar',  width = 0.25) +
-  stat_summary(fun = mean, fun.min = mean, fun.max = mean,
-               geom = 'errorbar',  width = 0.5) +
-  theme_classic() + 
-  xlab("Day") + 
-  ylab("RFU Value")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type)
-
-#widen data
-test <- spread(all_sample, sample_type, value)
-test <- all_sample %>% select(!well) %>% select(!OD600) %>% select(!sample) %>% pivot_wider(names_from = sample_type, values_from = value)
-
-#maybe I can try to separate and then rejoin the data 
-#separate into sample types
-cap<- all_sample %>% filter(sample_type == "capsule") %>% spread(sample_type, value)
-dis<- all_sample %>% filter(sample_type == "dissolved") %>% spread(sample_type, value)
-mixsup<- all_sample %>% filter(sample_type == "mixsup") %>% spread(sample_type, value)
-
-jointest<- cap %>% left_join(dis, join_by(day, meas, reactor, tech_rep, strain, 
-                                          encapsulation_treat, coating, bio_rep, exp, cell_loading))
-jointest<- jointest %>% left_join(mixsup, join_by(day, meas, reactor, tech_rep, strain, 
-                                                  encapsulation_treat, coating, bio_rep, exp, cell_loading))
-#this worked!
-ggplot(data = jointest, aes(x = capsule, y = dissolved, color = encapsulation_treat)) +
-  geom_point() +
-  theme_classic() + 
-  xlab("Capsule RFU") + 
-  ylab("Dissolved RFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Capsule vs Dissolved RFU")
-
-#does relationship depend on day? 
-ggplot(data = jointest, aes(x = capsule, y = dissolved, color = as.factor(day))) +
-  geom_point() +
-  theme_classic() + 
-  xlab("Capsule RFU") + 
-  ylab("Dissolved RFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Capsule vs Dissolved RFU Colored by Day")
-
-ggplot(data = jointest, aes(x = dissolved, y = capsule, color = encapsulation_treat)) +
-  geom_point() +
-  theme_classic() + 
-  xlab("Dissolved RFU") + 
-  ylab("Capsule RFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Capsule vs Dissolved RFU")
-
-jointest_sample<- jointest %>% filter(strain != "blank")
-ggplot(data = jointest_sample, aes(x = capsule, y = mixsup, color = coating)) +
-  geom_point() +
-  theme_classic() + 
-  xlab("Caspsule RFU") + 
-  ylab("Supernatant RFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Capsule vs Supernatant RFU") + facet_wrap(~encapsulation_treat+strain) +
-  geom_smooth(method='lm', )
-#could be interesting result here: while RFU in F199 capsules increased, this did not result in an increase of RFU in the supernatant (as opposed to G7, which saw greater growth in supernatant)
-
-g7 <- big_join %>% filter(strain == "G7") %>% filter(sample_type != "super")
-#comparing exp. data points to standard curve lines of best fit
-ggplot(data = g7, aes(x = value, y = cfu, color = as.factor(day))) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("RFU") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type + meas, ncol = 2) + geom_abline(aes(intercept = -1e+8, slope = 42602)) + 
-  geom_abline(aes(intercept = -1e+8, slope = 39569)) + xlim (0, 40000) + ylim(2e7, 1e9)
-#putting these figures on the same scale as the standard curves shows that the points cluster along the std curve
-#while the small # of data points may create a different trend line, when you zoom out these points make sense (we are just looking at very similar values and therefore seeing artifacts of that)
-
-a_sup<- A_sample %>% filter(sample_type == "mixsup") %>% filter(strain != "blank")
-f199<- a_sup %>% filter(strain == "F199")
-#trying to look at ExpA supernatant
-ggplot(data = a_sup, aes(x = day, y = value, color = encapsulation_treat)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("Day") + 
-  ylab("CFU")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time in Exp A") +facet_wrap(~sample_type + strain + meas)
-#F199 CFU counts seem to be higher in encapsulated sysmems compared to planktonic, however RFUs are not reflecting that
-#perhaps there is fluorescence quenching? however, this did not show up in standard curve. need to look back at that and compare. 
-
-#looking just at f199 on smaller scale
-ggplot(data = f199, aes(x = day, y = value, color = encapsulation_treat)) +
-  geom_point(stat='identity') +
-  theme_classic() + 
-  xlab("Day") + 
-  ylab("RFU Value")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time for F199 in MixSup") +facet_wrap(~sample_type + meas)
-
 #import final plate counts
 final_plate <- read_excel(here::here("data", "finalplatecounts.xlsx"))
+final_plate_clean<- final_plate %>% select(exp, day, reactor, sample_type, avg_cfu)
 all_mixsup <- all_exp %>% filter(sample_type == "mixsup")
-final_join <- final_plate %>% 
+final_join <- final_plate_clean %>% 
   left_join(all_mixsup, by = c("exp", "day", "reactor")) 
 ggplot(data = final_join, aes(x = value, y = avg_cfu, color = meas)) +
   geom_point(stat='identity') +
@@ -607,20 +438,146 @@ ggplot(data = final_join, aes(x = value, y = avg_cfu, color = meas)) +
   xlab("RFU") + 
   ylab("CFU")+ 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type + meas) + geom_abline(aes(intercept = 2e+6, slope = 60016)) + 
+  ggtitle("RFU Values Over Time") +facet_wrap(~sample_type.x + meas) + geom_abline(aes(intercept = 2e+6, slope = 60016)) + 
   geom_abline(aes(intercept = -2e+7, slope = 33585)) +
   geom_smooth(method='lm')
+#save to excel
 write_xlsx(final_join, here::here("data","final_join.xlsx"))
 
-all_plate<- 
 
-#need to create new variable for supernatant
+#need to create new variable for supernatant to sub in mixsup throughout experiment
 #starting with B_sample
 B_14<- subset(B_sample, day <=14 & sample_type=="super") 
 B_rest<- subset(B_sample, day >14 & sample_type=="mixsup")
 B_14<- B_14 %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
 B_rest<- B_rest %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
 B_super<- B_14 %>% full_join(B_rest) 
-B_other <- B_sample %>% filter(sample_type == c("capsule", "dissolved"))
+B_other <- B_sample %>% filter(sample_type == "capsule"| sample_type == "dissolved")
 B_sample_clean<- B_other %>% full_join(B_super)
 write_xlsx(B_sample_clean, here::here("data","B_test_clean.xlsx"))
+
+#repeat for C
+C_14<- subset(C_sample, day <=14 & sample_type=="super") 
+C_rest<- subset(C_sample, day >14 & sample_type=="mixsup")
+C_14<- C_14 %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+C_rest<- C_rest %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+C_super<- C_14 %>% full_join(C_rest) 
+C_other <- C_sample %>% filter(sample_type == "capsule"| sample_type == "dissolved")
+C_sample_clean<- C_other %>% full_join(C_super)
+write_xlsx(C_sample_clean, here::here("data","C_test_clean.xlsx"))
+
+#repeat for D
+D_7<- subset(D_sample, day <=7 & sample_type=="super") 
+D_rest<- subset(D_sample, day >7 & sample_type=="mixsup")
+D_7<- D_7 %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+D_rest<- D_rest %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+D_super<- D_7 %>% full_join(D_rest) 
+D_other <- D_sample %>% filter(sample_type == "capsule" | sample_type == "dissolved")
+D_sample_clean<- D_other %>% full_join(D_super)
+write_xlsx(D_sample_clean, here::here("data","D_test_clean.xlsx"))
+
+#repeat for A
+A_7<- subset(A_sample, day <=7 & sample_type=="super") 
+A_rest<- subset(A_sample, day >7 & sample_type=="mixsup")
+A_7<- A_7 %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+A_rest<- A_rest %>% select(!sample_type) %>% mutate(sample_type = "supernatant")
+A_super<- A_7 %>% full_join(A_rest) 
+A_other <- A_sample %>% filter(sample_type == "capsule" | sample_type == "dissolved")
+A_sample_clean<- A_other %>% full_join(A_super)
+write_xlsx(A_sample_clean, here::here("data","A_test_clean.xlsx"))
+
+#combine all cleaned experiments
+all_clean<- A_sample_clean %>% full_join(B_sample_clean) %>% full_join(C_sample_clean) %>% full_join(D_sample_clean)
+test<- all_clean %>% select(reactor, sample_type, value, exp)
+test<- all_clean %>% pivot_wider(names_from = sample_type, values_from = value, 
+                                 values_fn = ~ mean(.x, na.rm = TRUE))
+
+#average technical replicates
+group<- all_clean %>% group_by(sample_type, day, meas, reactor, strain, encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate) %>% summarize(avg_value = mean(value))
+write_xlsx(group, here::here("data", "allavg.xlsx"))
+group2<- all_clean %>% group_by(sample_type, day, meas, reactor, strain, encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate) %>% summarize(avg_value = mean(value), 
+                                                                                                                                                         avg_OD = mean(OD600))
+write_xlsx(group2, here::here("data", "avgrfu_OD.xlsx"))
+#split by sample_type and widen
+cap<- group %>% filter(sample_type == "capsule") %>% pivot_wider(names_from = sample_type, values_from = avg_value)
+dis<- group %>% filter(sample_type == "dissolved") %>% pivot_wider(names_from = sample_type, values_from = avg_value)
+mixsup<- group %>% filter(sample_type == "supernatant") %>% pivot_wider(names_from = sample_type, values_from = avg_value)
+#rejoin the split dfs
+test<- dis %>% left_join(cap, join_by(day, meas, reactor, strain, 
+                                                 encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate))
+all_wide<- mixsup %>% left_join(test, join_by(day, meas, reactor, strain, 
+                                              encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate))
+write_xlsx(all_wide, here::here("data","all_wide.xlsx")) #save to excel file
+
+#combine cfu data with group
+allplatecounts<- read_excel(here::here("data", "allplatecounts.xlsx"))
+allplatecounts<- allplatecounts %>% select(exp, day, reactor, sample_type, avg_cfu)
+
+check<- group %>% left_join(allplatecounts, join_by(exp, day, reactor, sample_type))
+write_xlsx(check, here::here("data","allrfu_cfu.xlsx")) #save to excel file
+ 
+group2<- group2 %>% filter(sample_type == "supernatant")
+combine<- group2 %>% left_join(allplatecounts, join_by(exp, day, reactor, sample_type))
+write_xlsx(combine, here::here("data", "od_cfu.xlsx"))
+#widen final data to calculate total concentration in reactors
+test <- final_join %>% pivot_wider(names_from = sample_type.x, values_from = avg_cfu) %>% filter(strain != "blank")
+
+freetest<- test %>% filter(encapsulation_treat == "planktonic")
+captest<- test %>% filter(encapsulation_treat != "planktonic")
+freetest <- freetest %>% mutate(total = (supernatant*10)) %>% mutate(release = 1)
+captest <- captest %>% mutate(total = (supernatant*10)+(capsule*2)) %>% mutate(release = supernatant/(supernatant+capsule))
+alltest<- freetest %>% full_join(captest)
+totalfig<- ggplot(data = alltest, aes(x = encapsulation_treat, y = total, fill = interaction(strain, encapsulation_treat, sep=":"))) +
+  stat_summary(geom="col", fun = mean) +
+  stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8), size = .4)+
+  theme_pubr() + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Total CFU Values")+
+  xlab("Treatment") + 
+  ylab("Total CFU/mL")+
+  scale_y_continuous(transform = "log10", limits = c(NA, 1e10),
+                     breaks = trans_breaks('log10', function(x) 10^x), 
+                     labels = trans_format('log10', math_format(10^.x))) + 
+  facet_wrap(~strain, strip.position = "bottom", scales = "free_x")+
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside", 
+        legend.position = "none")+
+  scale_fill_manual(values = c( "orchid4","#7CAE00", "lightpink", "cyan3"))
+totalfig
+ggdraw(totalfig) + draw_line(
+  x= c(.2, .4), 
+  y=c(.88, 0.88), 
+  color = "black", size = .5) + 
+  annotate("text", x = 0.3, y = 0.89, label = "****", size = 5)+ 
+  draw_line(
+    x= c(.65, .85), 
+    y=c(.88, 0.88), 
+    color = "black", size = .5) + 
+  annotate("text", x = 0.75, y = 0.89, label = "**", size = 5)
+ggsave(here("results", "totalcfu_expA.png"), width = 5000, height = 4000, units = "px", dpi = 800)
+#these results show that planktonic reactors contains the highest number of bacteria - but not by much...
+#when analyzing in JMP with one-factor ANOVA, there is no significant effect of encapsulation treatment on the total concentration within capsule
+#but this seems to be because G7 and F199 have opposite effect. When analyzing G7 alone, there is a significant effect of encapsulation on total CFU values
+write_xlsx(alltest, here::here("data","alltest.xlsx"))
+
+#looking at release ratio data by independent variable
+ggplot(data = captest, aes(x = cell_loading, y = release)) +
+  stat_summary(geom="col", fun = mean) +
+  stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8), size = .4)+
+  theme_pubr() + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Release Based on Cell Loading")
+ggplot(data = captest, aes(x = coating, y = release)) +
+  stat_summary(geom="col", fun = mean) +
+  stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8), size = .4)+
+  theme_pubr() + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Release Based on Coating")
+ggplot(data = captest, aes(x = alginate, y = release)) +
+  stat_summary(geom="col", fun = mean) +
+  stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8), size = .4)+
+  theme_pubr() + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("Release Based on Alginate %")
+#not sure that release is a valid measure to be looking at? does the calculation really represent "release"? - could just be growth in exterior...
