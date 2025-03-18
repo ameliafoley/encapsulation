@@ -56,7 +56,7 @@ test<- subset(df, strain != "blank")
 ggplot(data = test, aes(x = time_h, y = OD600, color = treatment, shape = media)) +
   geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("Rep2, F199, and G7 in 48-Well Plate")+
+  ggtitle("G7 in 48-Well Plate")+
   facet_wrap(~strain+media)
 
 #take averages of blanks
@@ -79,7 +79,15 @@ merge[merge < 0 ] <- 0 #convert negative values to zero
 ggplot(data = merge, aes(x = time_h, y = corrected, color = treatment)) +
   geom_point() + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("G7 + F199 Growth Curves")+
+  ggtitle("G7 Growth Curves")+
+  facet_wrap(~strain + media, ncol = 2)
+
+ggplot(data = merge, aes(x = time_h, y = corrected, color = treatment)) +
+  stat_summary(geom="point", fun = mean) +
+  stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8))+
+  theme_pubr() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("F199 Growth Curves")+
   facet_wrap(~strain + media, ncol = 2)
 
 

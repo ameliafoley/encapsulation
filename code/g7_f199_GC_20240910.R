@@ -67,7 +67,9 @@ merge$corrected<- merge$OD600 - merge$OD600_b #blank subtraction
 merge[merge < 0 ] <- 0 #convert negative values to zero
 
 ggplot(data = merge, aes(x = time_h, y = corrected, color = treatment)) +
-  geom_point() + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
+  stat_summary(geom="point", fun = mean) +
+  stat_summary(geom = "errorbar", width = .05, position = position_dodge(0.8))+
+  theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
   ggtitle("G7 + F199 Growth Curves")+
   facet_wrap(~strain + media, ncol = 2)

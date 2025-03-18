@@ -31,8 +31,9 @@ ggplot(data = g7_std, aes(x = avg_value, y = avg_cfu, color = meas)) +
   theme_pubr() + 
   xlab("RFU Value") + 
   ylab("CFU/mL")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("RFU Value vs. CFU/mL") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown()) +
+  ggtitle("*P. putida* G7 CFU/mL vs. RFU") + 
   scale_y_continuous(transform = "log10", 
                      breaks = trans_breaks('log10', function(x) 10^x), 
                      labels = trans_format('log10', math_format(10^.x)))+ 
@@ -41,7 +42,8 @@ ggplot(data = g7_std, aes(x = avg_value, y = avg_cfu, color = meas)) +
            parse = TRUE,
            size = 5)+
   scale_color_manual(values = c("#F8766D", "#7CAE00"), 
-                     name = "Fluorophore")
+                     name = "Fluorophore", 
+                     labels = c("mScarlet_g7" = "mScarlet"))
 ggsave(here("results", "std_curve.png"), width = 5000, height = 4000, units = "px", dpi = 800)
 
 g7_std_od<- g7_std[8:15,] 
@@ -51,8 +53,9 @@ ggplot(data = g7_std_od, aes(x = OD600, y = avg_cfu)) +
   theme_pubr() + 
   xlab("OD600") + 
   ylab("CFU/mL")+ 
-  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
-  ggtitle("OD600 vs. CFU/mL") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown()) +
+  ggtitle("*P. putida* G7 CFU/mL vs. OD600") + 
   scale_y_continuous(transform = "log10", 
                      breaks = trans_breaks('log10', function(x) 10^x), 
                      labels = trans_format('log10', math_format(10^.x)))+ 
@@ -195,7 +198,7 @@ summary(model5.1)
 plot_summs(model5.1, scale = TRUE)
 ggsave(here("results", "model5.1_cf.png"), width = 5000, height = 4000, units = "px", dpi = 800)
 export_summs(model1, model4.1, model5.1, scale = TRUE)
-export_summs(check, model4.1, model5.1, scale = TRUE, to.word = TRUE, word.file = here("results", "test.docx"))
+
 
 ggplot(logcfuplus1, aes(avg_value, avg_cfu, color = as.factor(day))) +
   stat_summary(geom = "point", width = .8, position = position_dodge(0.8))+
@@ -217,21 +220,119 @@ anova(model2, model4.1)
 check<- lm(logcfu ~ avg_value + meas, data = logcfu.1) #model without time/day variable
 summary(check)
 anova(check, model4.1)
+export_summs(check, model4.1, model5.1, scale = TRUE, to.word = TRUE, word.file = here("results", "test.docx"))
 
 # a multiple linear regression can highlight important variables and give us *rough* predictions based on RFU data
 
 # what does a model with just time as the predictor look like? 
-model_t<- lm(logcfu ~ day, data = logcfu.1)
+model_t<- lm(logcfu ~ day, data = wide)
 summary(model_t)
 #r2 is still high here
 
-anova(model4.1, model_t) #is the model with time significant from the model with avg RFU value AND time? 
+#anova(model4.1, model_t) #is the model with time significant from the model with avg RFU value AND time? 
 
-model_treat<- lm(logcfu ~ day + encapsulation_treat + meas, data = logcfu.1)
+#based on Nico's advice, need to consider effect of encapsulation treatment in model
+model_treat<- lm(logcfu ~ day + encapsulation_treat, data = wide)
 summary(model_treat)
 model_rfu<- lm(logcfu ~ day + encapsulation_treat + meas + avg_value + factor(day):avg_value, data = logcfu.1)
 summary(model_rfu)
+plot_summs(model_rfu, scale = TRUE)
  anova(model_treat, model_rfu) #the models are significantly different, even though adding RFU only increased R2 by a little
 model_rfu_notreat <- lm(logcfu ~ day + + meas + avg_value + factor(day):avg_value, data = logcfu.1)
 summary(model_rfu_notreat)
- 
+
+meas_labels<- c('mScarlet_g7' = "mScarlet", 
+                'mVenus' = "mVenus")
+
+#recreate figures showing encapsulation treat
+ggplot(data = logcfu.1, aes(x = avg_value, y = avg_cfu, color = as.factor(day))) +
+  geom_point(stat='identity', aes(shape = encapsulation_treat)) +
+  theme_pubr() + 
+  xlab("RFU Value") + 
+  ylab("CFU/mL")+ 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown()) +
+  ggtitle("*P. putida* G7 CFU/mL vs. RFU by Day") + 
+  facet_wrap(~meas, labeller = as_labeller(meas_labels))+
+  scale_y_continuous(transform = "log10", 
+                     breaks = trans_breaks('log10', function(x) 10^x), 
+                     labels = trans_format('log10', math_format(10^.x)))+ geom_smooth(method = 'lm', se = FALSE)+ 
+  scale_color_discrete(name = "Day")+ #rename legend
+  labs(shape = "Encapsulation Treatment")+
+  scale_color_manual(values = c( "14" = "darksalmon",
+                                 "28" = "paleturquoise3",
+                                 "42" = "plum3", 
+                                 "56" = "darkseagreen"), 
+                     name = "Day")
+
+
+
+#transform meas data to wide instead of long so that all datasets have same N
+wide<- logcfu.1 %>% pivot_wider(names_from = meas, values_from = avg_value)
+model_wide<- lm(logcfu ~ day + encapsulation_treat + mScarlet_g7 + mVenus + factor(day):mScarlet_g7 + factor(day):mVenus, data = wide)
+summary(model_wide)
+plot_summs(model_wide, scale = TRUE)
+plot_summs(model_wide)
+
+model_wide_scar<- lm(logcfu ~ day + encapsulation_treat + mScarlet_g7 + factor(day):mScarlet_g7, data = wide)
+summary(model_wide_scar)
+plot_summs(model_wide_scar, scale = TRUE)
+
+model_wide_ven<- lm(logcfu ~ day + encapsulation_treat + mVenus + factor(day):mVenus, data = wide)
+summary(model_wide_ven)
+plot_summs(model_wide_ven, scale = TRUE)
+
+model_wide_treatonly<- lm(logcfu ~ encapsulation_treat, data = wide)
+summary(model_wide_treatonly)
+
+model_wide_dayonly<- lm(logcfu ~ day, data = wide)
+summary(model_wide_dayonly)
+
+model_rfuonly <- lm(logcfu ~ mVenus + mScarlet_g7, data = wide)
+summary(model_rfuonly)
+
+model_all<- lm(logcfu ~ day + encapsulation_treat + mVenus + factor(day):mVenus + mScarlet_g7 + mScarlet_g7:factor(day), data = wide)
+summary(model_all)
+#mVenus does not contribute significantly to this model, so I will exclude it in the summary
+
+#export regression info in a table
+export_summs(model_t, model_treat, model_rfuonly, model_wide_ven, model_wide_scar, 
+             scale = TRUE, 
+             to.word = TRUE, 
+             word.file = here("results", "test9.docx"))
+export_summs(model_t, model_treat, model_rfuonly, model_wide_ven, model_wide_scar, 
+             scale = FALSE, 
+             to.word = TRUE, 
+             word.file = here("results", "test9-noscale.docx"))
+
+#get AIC
+aic_comparison<- AIC(model_t, model_treat, model_rfuonly, model_wide_ven, model_wide_scar, model_all)
+print(aic_comparison)
+
+#F-test for differences between models
+anova(model_wide_scar, model_treat)
+
+#ARRANGE FIGURE
+p_fluor<- ggplot(data = logcfu.1, aes(x = avg_value, y = avg_cfu, color = as.factor(day))) +
+  geom_point(stat='identity', aes(shape = encapsulation_treat)) +
+  theme_pubr() + 
+  xlab("RFU Value") + 
+  ylab("CFU/mL")+ 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown()) +
+  #ggtitle("*P. putida* G7 CFU/mL vs. RFU by Day") + 
+  facet_wrap(~meas, labeller = as_labeller(meas_labels))+
+  scale_y_continuous(transform = "log10", 
+                     breaks = trans_breaks('log10', function(x) 10^x), 
+                     labels = trans_format('log10', math_format(10^.x)))+ geom_smooth(method = 'lm', se = FALSE)+ 
+  scale_color_discrete(name = "Day")+ #rename legend
+  labs(shape = "Treatment")+
+  scale_color_manual(values = c( "14" = "darksalmon",
+                                 "28" = "paleturquoise3",
+                                 "42" = "plum3", 
+                                 "56" = "darkseagreen"), 
+                     name = "Day")+
+  xlim(NA, 16500)
+
+p_fluor
+ggsave(here("results", "fluormodel.png"), p_fluor, width = 7, height = 5.5, units = "in")
