@@ -51,14 +51,6 @@ test<- test %>% filter(rank<175)
 glimpse(test)
 glimpse(all)
 
-
-#sum<- test %>% dplyr::select(-well) %>% group_by(strain, media, treatment, rank) %>% summarize(avgOD = mean(corrected), se = std.error(corrected))
-
-#ggplot(data = sum, aes(x = rank, y = avgOD, color = treatment)) + 
-  #geom_point()+
-  #geom_errorbar(aes(ymin=avgOD-se, ymax=avgOD+se), width=.2,
-                #position=position_dodge(.9), size = .9)+facet_wrap(~strain + media)+
-  #geom_smooth(se = TRUE) + facet_wrap(~strain + media)
 ggplot(data = test, aes(x = time_h, y = corrected, color = strain)) +
   geom_point()+
   #stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8))+

@@ -43,6 +43,8 @@ longalltest<- join_alltest %>%
                values_to = "concentration") #master component dataset
 longalltest_1<- longalltest[!is.na(longalltest$concentration),] #remove NAs in order for this to work
 longalltest_1 <- longalltest_1 %>% filter(!component == "supernatant" | !encapsulation_treat == "planktonic")
+data_location7 <- here::here("data", "long-all-component.xlsx")
+write_xlsx(longalltest_1, data_location7)
 #break down into exp A
 a_exp<- longalltest_1 %>% filter(exp == "a")
 level_order<- c("capsule", "supernatant", "total", "planktonic") #order appearance of components for figures

@@ -94,6 +94,43 @@ ggsave(here("results", "od.png"), width = 5000, height = 4000, units = "px", dpi
 #now on to RFU
 #load data.
 df <- read_excel(here::here("data", "allrfu_cfu.xlsx"))
+capsule <- df %>% filter(sample_type == "capsule") %>% filter(strain == "G7") %>% 
+  filter(meas == c("mVenus", "mScarlet_g7")) #narrow to G7 and 2 fluorescent proteins
+
+ggplot(data = capsule, aes(x = avg_value, y = avg_cfu, color = meas)) +
+  geom_point(stat='identity') +
+  theme_pubr() + 
+  xlab("RFU Value") + 
+  ylab("CFU/mL")+ 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        legend.position = "none") +
+  ggtitle("RFU vs. CFU/mL for Capsules") + facet_wrap(~meas)+
+  scale_y_continuous(transform = "log10", 
+                     breaks = trans_breaks('log10', function(x) 10^x), 
+                     labels = trans_format('log10', math_format(10^.x)))
+model.cap<- lm(avg_cfu~ avg_value + meas, data = capsule)
+summary(model.cap) #RDU of intact capsules does not explain variability of capsule CFU data
+##dissolved
+dissolved <- df %>% filter(sample_type == "dissolved") %>% filter(strain == "G7") %>% 
+  filter(meas == c("mVenus", "mScarlet_g7")) #narrow to G7 and 2 fluorescent proteins
+
+dc.join<- dissolved %>% left_join(capsule, join_by(day, meas, reactor, strain,
+                                                   encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate))
+
+ggplot(data = dc.join, aes(x = avg_value.x, y = avg_cfu.y, color = meas)) +
+  geom_point(stat='identity') +
+  theme_pubr() + 
+  xlab("RFU Value") + 
+  ylab("CFU/mL")+ 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        legend.position = "none") +
+  ggtitle("RFU vs. CFU/mL for Dissolved Capsules") + facet_wrap(~meas)+
+  scale_y_continuous(transform = "log10", 
+                     breaks = trans_breaks('log10', function(x) 10^x), 
+                     labels = trans_format('log10', math_format(10^.x)))
+model.dis<- lm(avg_cfu.y~ avg_value.x + meas, data = dc.join)
+summary(model.dis) #RFU of dissolved capsule does not explain variability in CFU data
+
 super<- df %>% filter(sample_type == "supernatant") %>% filter(strain != "blank") #look at only supernatant samples
 g7<- super %>% filter(strain == "G7") %>% filter(meas == c("mVenus", "mScarlet_g7")) #narrow to G7 and 2 fluorescent proteins
 
@@ -224,6 +261,9 @@ export_summs(check, model4.1, model5.1, scale = TRUE, to.word = TRUE, word.file 
 
 # a multiple linear regression can highlight important variables and give us *rough* predictions based on RFU data
 
+#transform meas data to wide instead of long so that all datasets have same N
+wide<- logcfu.1 %>% pivot_wider(names_from = meas, values_from = avg_value)
+
 # what does a model with just time as the predictor look like? 
 model_t<- lm(logcfu ~ day, data = wide)
 summary(model_t)
@@ -267,8 +307,7 @@ ggplot(data = logcfu.1, aes(x = avg_value, y = avg_cfu, color = as.factor(day)))
 
 
 
-#transform meas data to wide instead of long so that all datasets have same N
-wide<- logcfu.1 %>% pivot_wider(names_from = meas, values_from = avg_value)
+
 model_wide<- lm(logcfu ~ day + encapsulation_treat + mScarlet_g7 + mVenus + factor(day):mScarlet_g7 + factor(day):mVenus, data = wide)
 summary(model_wide)
 plot_summs(model_wide, scale = TRUE)

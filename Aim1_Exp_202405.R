@@ -505,7 +505,7 @@ mixsup<- group %>% filter(sample_type == "supernatant") %>% pivot_wider(names_fr
 #rejoin the split dfs
 test<- dis %>% left_join(cap, join_by(day, meas, reactor, strain, 
                                                  encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate))
-all_wide<- mixsup %>% left_join(test, join_by(day, meas, reactor, strain, 
+all_wide<- mixsup %>% left_join(test, join_by(day, meas, reactor, strain,
                                               encapsulation_treat, coating, bio_rep, exp, cell_loading, alginate))
 write_xlsx(all_wide, here::here("data","all_wide.xlsx")) #save to excel file
 

@@ -19,6 +19,7 @@ library(gridExtra)
 library(agricolae) #for assigning Tukey letters
 library(ggsignif)
 library(broom)
+library(ggtext)
 
 
 #load data. 
@@ -26,7 +27,7 @@ fla <- read_excel(here::here("data", "Exp 2.1 fluor and code copy.xlsx"))
 glimpse(fla)
 
 #clean and remove h.taenio (contaminated with A. venet)
-clean <- fla %>% dplyr::filter(sample.no != "6") %>% filter(strain != "h.taenio")
+clean <- fla %>% dplyr::filter(sample.no != "6") %>% filter(strain != "h.taenio") %>% filter(strain != "m.fred")
 clean$strain <- clean$strain %>% factor(levels = c("abiotic", 
                                                    "p.putida", 
                                                    "a.venet", 
@@ -83,7 +84,7 @@ p_fla.line<- ggplot(data = sum_fla, aes(x = day, y = fluoranthene_mean, color = 
   geom_errorbar(aes(ymin=fluoranthene_mean-fluoranthene_se, ymax=fluoranthene_mean+fluoranthene_se, 
                     group = interaction(sum_fla$strain,sum_fla$treatment)), 
                 position=position_dodge(.1, preserve = "single"), width = 3, alpha = 1)+
-  theme_pubr() + xlab("Treatment") + ylab("Fluoranthene (ng/mL)") + 
+  theme_pubr() + xlab("Day") + ylab("Fluoranthene (ng/mL)") + 
   #theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
   facet_wrap(~ strain, labeller = as_labeller(bac_label), scales = 'free_x')+
   theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
@@ -95,8 +96,7 @@ p_fla.line<- ggplot(data = sum_fla, aes(x = day, y = fluoranthene_mean, color = 
 p_fla.line
 p_fla.line.brac<- ggdraw(p_fla.line)+ #asterisks represent significant treatment term in RM anova separated by strain
   annotate("text", x = 0.23, y = 0.83, label = "****", size = 5)+ #abiotic
-  annotate("text", x = 0.84, y = 0.83, label = "*", size = 5)+ #a.venet
-  annotate("text", x = 0.84, y = 0.4, label = "*", size = 5) #m.fred
+  annotate("text", x = 0.84, y = 0.83, label = "*", size = 5) #a.venet
 p_fla.line.brac
 
 
@@ -249,5 +249,286 @@ p_f.removal.brac<- ggdraw(p_f.removal)+ #with pairwise brackets
 
 p_f.removal.brac
 
+## Naphthalene data
 
+#load data. 
+nap <- read_excel(here::here("data", "Exp 2.1 Naphthalene and code copy.xlsx"))
+glimpse(nap)
+
+#clean and remove h.taenio (contaminated with A. venet)
+clean_nap <- nap %>% dplyr::filter(sample.no != "6") %>% filter(strain != "h.taenio") %>% filter(strain != "m.fred")
+clean_nap$strain <- clean_nap$strain %>% factor(levels = c("abiotic", 
+                                                   "p.putida", 
+                                                   "a.venet", 
+                                                   "n.aroma", 
+                                                   "n.penta", 
+                                                   "m.fred"))
+#remove NAs
+clean_nap <- clean_nap %>% filter(concentration.ngml != "N/A")
+clean_nap$concentration.ngml <- as.double(clean_nap$concentration.ngml)
+glimpse(clean_nap)
+
+sum_nap<- clean_nap %>% group_by(strain, day, treatment) %>% summarise(nap_mean = mean(concentration.ngml), 
+                                                                   nap_se = sd(concentration.ngml) / sqrt(n()), 
+                                                                   
+)
+
+
+#plot concentration over time
+ggplot(data = sum_nap, aes(x = day, y = nap_mean, fill = strain, alpha = treatment)) +
+  geom_bar(stat='identity', position=position_dodge(20)) +
+  geom_errorbar(aes(ymin=nap_mean-nap_se, ymax=nap_mean+nap_se, 
+                    group = interaction(sum_nap$strain,sum_nap$treatment)), 
+                position=position_dodge(20, preserve = "single"), width = 3, alpha = 1)+
+  theme_pubr() + xlab("Day") + ylab("Naphthalene (ng/mL)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label))+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_alpha_manual(name = "Treatment", 
+                     values = c(1, 0.4), 
+                     labels=c("Capsule", "Planktonic"))+
+  guides(fill = "none")
+
+#concentration over time as line plot with stats annotations
+linetype = rep(c('solid', 'dashed'),2) #set linetypes for scale function
+
+p_nap.line<- ggplot(data = sum_nap, aes(x = day, y = nap_mean, color = strain, group = treatment)) +
+  geom_line(aes(linetype = treatment))+
+  geom_point(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=nap_mean-nap_se, ymax=nap_mean+nap_se, 
+                    group = interaction(sum_nap$strain,sum_nap$treatment)),
+                position=position_dodge(.1, preserve = "single"), width = 3, alpha = 1)+
+  theme_pubr() + xlab("Day") + ylab("Naphthalene (ng/mL)") + 
+  #theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label), scales = 'free_x')+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_linetype_manual(name = "Treatment", 
+                        values = linetype,
+                        labels=c("Capsule", "Planktonic"))+
+  guides(color = "none")+
+  scale_x_continuous(breaks = seq(0, 42, 21)) #syntax is seq(start, end, step-by)
+p_nap.line
+p_nap.line.brac<- ggdraw(p_nap.line)+ #asterisks represent significant treatment term in RM anova separated by strain
+  annotate("text", x = 0.23, y = 0.37, label = "*", size = 5) #n.aroma
+p_nap.line.brac
+
+
+#percent removal
+removal_nap <- clean_nap %>%
+  group_by(strain, sample, treatment) %>%
+  summarise(
+    initial = concentration.ngml[day == 0], 
+    mid = concentration.ngml[day == 21], 
+    final = concentration.ngml[day == 42], 
+    percent_removal_21 = (initial - mid) / initial * 100, 
+    percent_removal_42 = (initial - final) / initial * 100
+  )
+
+removal_long_nap <- removal_nap %>%
+  pivot_longer(cols = !c(strain, sample, treatment, initial, mid, final), 
+               names_to = c(".value", "day"), 
+               names_pattern = "(.*)_(\\d+)")
+
+sum_removal_nap <- removal_nap %>%
+  group_by(strain, treatment) %>%
+  summarise(
+    mean_removal_21 = mean(percent_removal_21), 
+    se_removal_21 = sd(percent_removal_21) / sqrt(n()), 
+    mean_removal_42 = mean(percent_removal_42), 
+    se_removal_42 = sd(percent_removal_42) / sqrt(n())
+  )
+
+sum_removal_long_nap <- sum_removal_nap %>%
+  pivot_longer(cols = !c(strain, treatment), 
+               names_to = c(".value", "day"), 
+               names_pattern = "(.*)_(\\d+)")
+
+#plot % removal
+ggplot(data = sum_removal_long_nap, aes(x = day, y = mean_removal, fill = strain, alpha = treatment)) +
+  geom_bar(stat='identity', position=position_dodge(1)) +
+  #geom_errorbar(aes(ymin=mean_removal-se_removal, ymax=mean_removal+se_removal, 
+                    #group = interaction(sum_removal_long$strain,sum_removal_long$treatment)),  
+                #position=position_dodge(1, preserve = "single"), width = .3, alpha = 1)+
+  theme_pubr() + xlab("Day") + ylab("Naphthalene Removal (%)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label))+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_alpha_manual(name = "Treatment", 
+                     values = c(1, 0.4), 
+                     labels=c("Capsule", "Planktonic"))+
+  guides(fill = "none")
+#this doesn't work very well for NAP because of lost reps - no SE able to be computed
+
+#NAPHTHALENE STATS
+# ANOVA
+nap_anova <- aov(concentration.ngml ~ strain * treatment * day, data = clean_nap)
+summary(nap_anova)
+
+# Tukey HSD
+tuk_nap <- nap_anova %>% tukey_hsd()
+
+# Grouping letters
+letters_nap <- HSD.test(nap_anova, c("strain", "treatment", "day"), group = TRUE, console = TRUE)
+
+# Perform two-factor ANOVA for each strain with repeated measures
+anova_results_nap <- clean_nap %>%
+  group_by(strain) %>%
+  do({
+    model <- aov(concentration.ngml ~ treatment * day + 
+                   Error(sample/day), data = .)
+    tidy(model)
+  })
+
+# Display results
+print(anova_results_nap)
+
+# Extract and summarize significant p-values
+significant_results_nap <- anova_results_nap %>%
+  filter(p.value < 0.05) %>%
+  select(strain, term, p.value)
+
+print(significant_results_nap)
+
+
+
+#PHENANTHRENE DATA
+
+#load data. 
+phe <- read_excel(here::here("data", "Exp 2.1 Phenanthrene and code copy.xlsx"))
+glimpse(phe)
+
+#clean and remove h.taenio (contaminated with A. venet)
+clean_phe <- phe %>% dplyr::filter(sample.no != "6") %>% filter(strain != "h.taenio") %>% filter(strain != "m.fred")
+clean_phe$strain <- clean_phe$strain %>% factor(levels = c("abiotic", 
+                                                   "p.putida", 
+                                                   "a.venet", 
+                                                   "n.aroma", 
+                                                   "n.penta", 
+                                                   "m.fred"))
+
+#remove NAs
+clean_phe <- clean_phe %>% filter(concentration.ngml != "N/A")
+clean_phe$concentration.ngml <- as.double(clean_phe$concentration.ngml)
+glimpse(clean_phe)
+
+sum_phe<- clean_phe %>% group_by(strain, day, treatment) %>% summarise(phe_mean = mean(concentration.ngml), 
+                                                                   phe_se = sd(concentration.ngml) / sqrt(n()), 
+                                                                   
+)
+
+
+#plot concentration over time
+ggplot(data = sum_phe, aes(x = day, y = phe_mean, fill = strain, alpha = treatment)) +
+  geom_bar(stat='identity', position=position_dodge(20)) +
+  geom_errorbar(aes(ymin=phe_mean-phe_se, ymax=phe_mean+phe_se, 
+                    group = interaction(sum_phe$strain,sum_phe$treatment)), 
+                position=position_dodge(20, preserve = "single"), width = 3, alpha = 1)+
+  theme_pubr() + xlab("Treatment") + ylab("Phenanthrene (ng/mL)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label))+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_alpha_manual(name = "Treatment", 
+                     values = c(1, 0.4), 
+                     labels=c("Capsule", "Planktonic"))+
+  guides(fill = "none")
+
+#concentration over time as line plot with stats annotations
+linetype = rep(c('solid', 'dashed'),2) #set linetypes for scale function
+
+p_phe.line<- ggplot(data = sum_phe, aes(x = day, y = phe_mean, color = strain, group = treatment)) +
+  geom_line(aes(linetype = treatment))+
+  geom_point(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=phe_mean-phe_se, ymax=phe_mean+phe_se, 
+                    group = interaction(sum_phe$strain,sum_phe$treatment)), 
+                position=position_dodge(.1, preserve = "single"), width = 3, alpha = 1)+
+  theme_pubr() + xlab("Day") + ylab("Phenanthrene (ng/mL)") + 
+  #theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label), scales = 'free_x')+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_linetype_manual(name = "Treatment", 
+                        values = linetype,
+                        labels=c("Capsule", "Planktonic"))+
+  guides(color = "none")+
+  scale_x_continuous(breaks = seq(0, 42, 21)) #syntax is seq(start, end, step-by)
+p_phe.line
+p_phe.line.brac<- ggdraw(p_phe.line)+ #asterisks represent significant treatment term in RM anova separated by strain
+  annotate("text", x = 0.54, y = 0.8, label = "*", size = 5)+ #p.putida
+  annotate("text", x = 0.23, y = 0.36, label = "***", size = 5) #n.aroma
+p_phe.line.brac
+
+
+# percent removal
+removal_phe <- clean_phe %>%
+  group_by(strain, sample, treatment) %>%
+  summarise(
+    initial = concentration.ngml[day == 0], 
+    mid = concentration.ngml[day == 21], 
+    final = concentration.ngml[day == 42], 
+    percent_removal_21 = (initial - mid) / initial * 100, 
+    percent_removal_42 = (initial - final) / initial * 100
+  )
+
+removal_long_phe <- removal_phe %>%
+  pivot_longer(cols = !c(strain, sample, treatment, initial, mid, final), 
+               names_to = c(".value", "day"), 
+               names_pattern = "(.*)_(\\d+)")
+
+sum_removal_phe <- removal_phe %>%
+  group_by(strain, treatment) %>%
+  summarise(
+    mean_removal_21 = mean(percent_removal_21), 
+    se_removal_21 = sd(percent_removal_21) / sqrt(n()), 
+    mean_removal_42 = mean(percent_removal_42), 
+    se_removal_42 = sd(percent_removal_42) / sqrt(n())
+  )
+
+sum_removal_long_phe <- sum_removal_phe %>%
+  pivot_longer(cols = !c(strain, treatment), 
+               names_to = c(".value", "day"), 
+               names_pattern = "(.*)_(\\d+)")
+
+#plot % removal
+ggplot(data = sum_removal_long_phe, aes(x = day, y = mean_removal, fill = strain, alpha = treatment)) +
+  geom_bar(stat='identity', position=position_dodge(1)) +
+  geom_errorbar(aes(ymin=mean_removal-se_removal, ymax=mean_removal+se_removal, 
+                    group = interaction(sum_removal_long$strain,sum_removal_long$treatment)),  
+                position=position_dodge(1, preserve = "single"), width = .3, alpha = 1)+
+  theme_pubr() + xlab("Day") + ylab("Phenanthrene Removal (%)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain, labeller = as_labeller(bac_label))+
+  theme(strip.text = element_text(face = "italic", size = 12), axis.title.y = element_markdown())+
+  scale_alpha_manual(name = "Treatment", 
+                     values = c(1, 0.4), 
+                     labels=c("Capsule", "Planktonic"))+
+  guides(fill = "none")
+
+#PHENANTHRENE STATS
+# ANOVA
+phe_anova <- aov(concentration.ngml ~ strain * treatment * day, data = clean_phe)
+summary(phe_anova)
+
+# Tukey HSD
+tuk_phe <- phe_anova %>% tukey_hsd()
+
+# Grouping letters
+letters_phe <- HSD.test(phe_anova, c("strain", "treatment", "day"), group = TRUE, console = TRUE)
+
+# Perform two-factor ANOVA for each strain with repeated measures
+anova_results_phe <- clean_phe %>%
+  group_by(strain) %>%
+  do({
+    model <- aov(concentration.ngml ~ treatment * day + 
+                   Error(sample/day), data = .)
+    tidy(model)
+  })
+
+# Display results
+print(anova_results_phe)
+
+# Extract and summarize significant p-values
+significant_results_phe <- anova_results_phe %>%
+  filter(p.value < 0.05) %>%
+  select(strain, term, p.value)
+
+print(significant_results_phe)
 

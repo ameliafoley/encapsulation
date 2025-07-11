@@ -305,15 +305,17 @@ print(pg)
 
 data_location2 <- here::here("data", "aim2.1platecounts_clean.xlsx")
 write_xlsx(total, data_location2)
-data_location3 <- here::here("data", "aim2.1platecounts_sum.xlsx")
-write_xlsx(summary_data, data_location3)
+#data_location3 <- here::here("data", "aim2.1platecounts_sum.xlsx")
+#write_xlsx(summary_data, data_location3)
 
 
 
 #removing h.taenio due to Sanger results indicating contamination
-total_conc_only <- total_conc_only %>% filter(strain != "h.taenio")
+total_conc_only <- total_conc_only %>% filter(strain != "h.taenio") %>% filter(strain != "m.fred")
 
 ###switching to dot plots based on feedback about log scale/bars
+linetype = rep(c('solid', 'dashed'),2) #set linetypes for scale function
+
 p_total<- ggplot(data = total_conc_only, aes(x = as.factor(day), y = mean, color = strain, group = factor(rx))) +
   geom_line(aes(linetype = rx), position=position_dodge(.2))+
   geom_point(stat='identity', position=position_dodge(.2)) +
@@ -338,12 +340,11 @@ p_total<- ggplot(data = total_conc_only, aes(x = as.factor(day), y = mean, color
   theme(strip.text = element_text(face = "italic", size = 12))+
   scale_color_manual(values = c( "p.putida" = "#ABA300",
                                  "a.venet" = "#00BE67", 
-                                 "n.aroma" = "#00BFC4", 
-                                 "n.penta" = "#00A9FF", 
-                                 "m.fred" = "#ED68ED"))
+                                 "n.aroma" = "#00A9FF", 
+                                 "n.penta" = "#ED68ED"))
 p_total
 p_total_brac<- ggdraw(p_total)+ #asterisks represent significant treatment term in RM anova separated by strain
-  annotate("text", x = 0.23, y = 0.4, label = "*", size = 5) #n. penta
+  annotate("text", x = 0.77, y = 0.4, label = "*", size = 5) #n. penta
 p_total_brac
   
 #TOTAL STATS
@@ -372,7 +373,7 @@ print(significant_results.total) #shows that only sig effect of Rx was for N.pen
 
 ##include all types, not just total
 #removing h.taenio due to Sanger results indicating contamination
-clean_sum <- clean_sum %>% filter(strain != "h.taenio")
+clean_sum <- clean_sum %>% filter(strain != "h.taenio") %>% filter(strain != "m.fred")
 #scatterplot over time
 linetype2 = rep(c('dotted','solid', 'longdash'),3) #set linetypes for scale function
 ggplot(data = clean_sum, aes(x = day, y = mean_cfu, color = strain, 
@@ -389,7 +390,7 @@ ggplot(data = clean_sum, aes(x = day, y = mean_cfu, color = strain,
   theme_pubr()+
   xlab("Day") + 
   ylab("CFU/mL")+
-  facet_wrap(~strain, labeller = as_labeller(bac_label), ncol = 3, scales = "free_x") +
+  facet_wrap(~strain, labeller = as_labeller(bac_label), ncol = 2, scales = "free_x") +
   scale_y_continuous(transform = "log10", limits = c(-1e1, 10^(9.5)), 
                      breaks = trans_breaks('log10', function(x) 10^x), 
                      labels = trans_format('log10', math_format(10^.x)))+
@@ -404,9 +405,8 @@ ggplot(data = clean_sum, aes(x = day, y = mean_cfu, color = strain,
   guides(color = "none")+
   scale_color_manual(values = c( "p.putida" = "#ABA300",
                                  "a.venet" = "#00BE67", 
-                                 "n.aroma" = "#00BFC4", 
-                                 "n.penta" = "#00A9FF", 
-                                 "m.fred" = "#ED68ED"))
+                                 "n.aroma" = "#00A9FF", 
+                                 "n.penta" = "#ED68ED"))
 
 ##COMPONENT STATS
 clean.m <- clean %>%
