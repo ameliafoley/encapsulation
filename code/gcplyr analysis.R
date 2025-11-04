@@ -2,6 +2,11 @@
 library(gcplyr)
 library(growthrates)
 library(patchwork)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(flextable)
 
 data_location2 <- here::here("data", "f199chit_20241011.xlsx")
 data_location3 <- here::here("data", "gc_minusa_norm_20240930.xlsx")
@@ -11,71 +16,95 @@ data_location6 <- here::here("data", "f199chit_clean_202410131.xlsx")
 
 
 #load data
-f199<- read_excel(data_location2)
-both<- read_excel(data_location3)
-g7<- read_excel(data_location4)
-g72<- read_excel(data_location5)
-f1992<- read_excel(data_location6)
+f199 <- read_excel(data_location2) %>%
+  mutate(plate.id = "f199")
+
+both <- read_excel(data_location3) %>%
+  mutate(plate.id = "both")
+
+g7 <- read_excel(data_location4) %>%
+  mutate(plate.id = "g7")
+
+g72 <- read_excel(data_location5) %>%
+  mutate(plate.id = "g72")
+
+f1992 <- read_excel(data_location6) %>%
+  mutate(plate.id = "f1992")
 
 f199_test<- mutate(
-  group_by(f199, well), 
+  group_by(f199, well, plate.id), 
   percap_deriv = calc_deriv(y = corrected, x = time_h, 
-                            percapita = TRUE, blank = 0, window_width_n = 5)
+                            percapita = TRUE, blank = 0, window_width_n = 5, trans_y = "log")
 )
 data_sum_f199 <- summarize(
-  group_by(f199_test, strain, media, treatment, well),
-  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv),
+  group_by(f199_test, strain, media, treatment, well, plate.id),
+  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv, blank = 0),
   max_percap = max(percap_deriv, na.rm = TRUE),
+  max_percap_time = time_h[which_max_gc(percap_deriv)],
   max_dens = max(corrected),
+  max_percap_dens = corrected[which_max_gc(percap_deriv)],
+  min_dens = min_gc(corrected),
   auc = auc(y = corrected, x = as.numeric(time_h)))
 
 g7_test<- mutate(
-  group_by(g7, well), 
+  group_by(g7, well, plate.id), 
   percap_deriv = calc_deriv(y = corrected, x = time_h, 
-                            percapita = TRUE, blank = 0, window_width_n = 5), 
+                            percapita = TRUE, blank = 0, window_width_n = 5, trans_y = "log"), 
   doub_time = doubling_time(y = percap_deriv))
 
 data_sum_g7 <- summarize(
-  group_by(g7_test, strain, media, treatment, well),
-  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv),
+  group_by(g7_test, strain, media, treatment, well, plate.id),
+  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv, blank = 0),
   max_percap = max(percap_deriv, na.rm = TRUE),
+  max_percap_time = time_h[which_max_gc(percap_deriv)],
   max_dens = max(corrected),
+  max_percap_dens = corrected[which_max_gc(percap_deriv)],
+  min_dens = min_gc(corrected),
   auc = auc(y = corrected, x = as.numeric(time_h)))
 
 both_test<- mutate(
-  group_by(both, well), 
+  group_by(both, well, plate.id), 
   percap_deriv = calc_deriv(y = corrected, x = time_h, 
-                            percapita = TRUE, blank = 0, window_width_n = 5)
+                            percapita = TRUE, blank = 0, window_width_n = 5, trans_y = "log")
 )
 data_sum_both <- summarize(
-  group_by(both_test, strain, media, treatment, well),
-  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv),
+  group_by(both_test, strain, media, treatment, well, plate.id),
+  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv, blank = 0),
   max_percap = max(percap_deriv, na.rm = TRUE),
+  max_percap_time = time_h[which_max_gc(percap_deriv)],
   max_dens = max(corrected),
+  max_percap_dens = corrected[which_max_gc(percap_deriv)],
+  min_dens = min_gc(corrected),
   auc = auc(y = corrected, x = as.numeric(time_h)))
 
 g72_test<- mutate(
-  group_by(g72, well), 
+  group_by(g72, well, plate.id), 
   percap_deriv = calc_deriv(y = corrected, x = time_h, 
-                            percapita = TRUE, blank = 0, window_width_n = 5)
+                            percapita = TRUE, blank = 0, window_width_n = 5, trans_y = "log")
 )
 data_sum_g72 <- summarize(
-  group_by(g72_test, strain, media, treatment, well),
-  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv),
+  group_by(g72_test, strain, media, treatment, well, plate.id),
+  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv, blank = 0),
   max_percap = max(percap_deriv, na.rm = TRUE),
+  max_percap_time = time_h[which_max_gc(percap_deriv)],
   max_dens = max(corrected),
+  max_percap_dens = corrected[which_max_gc(percap_deriv)],
+  min_dens = min_gc(corrected),
   auc = auc(y = corrected, x = as.numeric(time_h)))
 
 f1992_test<- mutate(
-  group_by(f1992, well), 
+  group_by(f1992, well, plate.id), 
   percap_deriv = calc_deriv(y = corrected, x = time_h, 
-                            percapita = TRUE, blank = 0, window_width_n = 5)
+                            percapita = TRUE, blank = 0, window_width_n = 5, trans_y = "log")
 )
 data_sum_f1992 <- summarize(
-  group_by(f1992_test, strain, media, treatment, well),
-  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv),
+  group_by(f1992_test, strain, media, treatment, well, plate.id),
+  lag_time = lag_time(x = time_h, y = corrected, deriv = percap_deriv, blank = 0),
   max_percap = max(percap_deriv, na.rm = TRUE),
+  max_percap_time = time_h[which_max_gc(percap_deriv)],
   max_dens = max(corrected),
+  max_percap_dens = corrected[which_max_gc(percap_deriv)],
+  min_dens = min_gc(corrected),
   auc = auc(y = corrected, x = as.numeric(time_h)))
 
 gc_test<- rbind(f199_test, both_test, g7_test, g72_test, f1992_test)
@@ -326,3 +355,297 @@ anova_lag_f199<- aov(lag_time ~ media*treatment, data = gc_test2_f199)
 summary(anova_lag_f199)
 tuk_lag_f199<- anova_lag_f199 %>% tukey_hsd()
 letters_lag_f199<- HSD.test(anova_lag_f199, c("media", "treatment"), group=TRUE, console = TRUE)
+
+## plot per cap deriv over time
+ggplot(data = gc_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1))+
+  #stat_summary(geom="col", fun = mean) +
+  #stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8))+
+  theme_pubr() + xlab("Time") + ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain+media+treatment)
+ggplot(data = gc_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_point(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+
+#look at them individually in f199_test, both_test, g7_test, g72_test, f1992_test
+ggplot(data = f199_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+ggplot(data = both_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+ggplot(data = g7_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+ggplot(data = g72_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+ggplot(data = f1992_test, aes(x = time_h, y = percap_deriv, color = treatment)) +
+  geom_line(fill = "black", position = position_jitter(width = 0.1, height = 0.1)) +
+  theme_pubr() + 
+  xlab("Time") + 
+  ylab("Growth Rate (h<sup>-1</sup>)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) + 
+  facet_wrap(~ strain + media) +
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod", 
+                                "free" = "sienna3")) +
+  coord_cartesian(xlim = c(0, 100))   # <- this sets y-axis range
+
+
+
+########testing visualization fo calculations
+
+library(htmltools)
+plots <- list()
+
+group_vars <- c("strain", "media", "treatment", "well", "plate.id")
+
+gc_test %>%
+  group_by(across(all_of(group_vars))) %>%
+  group_walk(~{
+    data_group <- .x
+    keys <- .y
+    group_name <- paste(paste(names(keys), keys, sep = "=", collapse = ", "))
+    
+    summ <- gc_test2 %>%
+      filter(
+        strain    == keys$strain,
+        media     == keys$media,
+        treatment == keys$treatment,
+        well      == keys$well,
+        plate.id  == keys$plate.id
+      )
+    
+    p <- ggplot(data_group, aes(x = time_h, y = percap_deriv)) +
+      geom_line() +
+      geom_point(
+        data = summ,
+        aes(x = max_percap_time, y = max_percap),
+        color = "red", size = 2, inherit.aes = FALSE
+      ) +
+      geom_vline(
+        data = summ,
+        aes(xintercept = lag_time),
+        color = "blue", linetype = "dashed", inherit.aes = FALSE
+      ) +
+      labs(title = paste("Growth curve:", group_name)) +
+      coord_cartesian(ylim = c(-1, NA))
+    
+    plots[[group_name]] <<- p
+  })
+
+# save all plots into one HTML file
+save_html(
+  tagList(lapply(plots, plotly::ggplotly)), # optional: make plots interactive
+  file = "growthcurve_plots.html"
+)
+
+##two plots
+gc_test %>%
+  group_by(across(all_of(group_vars))) %>%
+  group_walk(~{
+    data_group <- .x
+    keys <- .y
+    group_name <- paste(paste(names(keys), keys, sep = "=", collapse = ", "))
+    
+    summ <- gc_test2 %>%
+      filter(
+        strain    == keys$strain,
+        media     == keys$media,
+        treatment == keys$treatment,
+        well      == keys$well,
+        plate.id  == keys$plate.id
+      )
+    
+    ## --- Plot 1: log(corrected OD) over time with tangent ---
+    p1 <- ggplot(data_group, aes(x = time_h, y = log(corrected))) +
+      geom_point() +
+      geom_abline(
+        data = summ,
+        aes(slope = max_percap,
+            intercept = log(max_percap_dens) - max_percap * max_percap_time),
+        color = "red", inherit.aes = FALSE
+      ) +
+      geom_vline(
+        data = summ, aes(xintercept = lag_time),
+        linetype = "dashed", color = "blue", inherit.aes = FALSE
+      ) +
+      geom_hline(
+        data = summ, aes(yintercept = log(min_dens)),
+        linetype = "dotted", color = "black", inherit.aes = FALSE
+      ) +
+      labs(title = paste("OD (log-scale):", group_name),
+           y = "log(corrected OD)", x = "Time")
+    
+    ## --- Plot 2: derivative over time ---
+    p2 <- ggplot(data_group, aes(x = time_h, y = percap_deriv)) +
+      geom_line() +
+      geom_point(
+        data = summ, aes(x = max_percap_time, y = max_percap),
+        color = "red", size = 2, inherit.aes = FALSE
+      ) +
+      geom_vline(
+        data = summ, aes(xintercept = lag_time),
+        linetype = "dashed", color = "blue", inherit.aes = FALSE
+      ) +
+      labs(title = "Per-capita derivative", y = "Derivative", x = "Time") +
+      coord_cartesian(ylim = c(-1, NA))
+    
+    ## Combine vertically
+    combined <- p1 / p2
+    plots[[group_name]] <<- combined
+  })
+
+#non-interactive
+outdir <- tempdir()
+
+htmltools::save_html(
+  tagList(lapply(names(plots), function(nm) {
+    # file path
+    f <- file.path(outdir, paste0(nm, ".png"))
+    # save combined patchwork to PNG
+    ggsave(f, plots[[nm]], width = 8, height = 6, dpi = 150)
+    # embed in HTML
+    tags$div(
+      style = "page-break-after: always;",
+      tags$h2(nm),
+      tags$img(src = f, style = "width:100%;")
+    )
+  })),
+  file = "growthcurve_comparison.html"
+)
+##grouping
+
+##back to original
+library(ggplot2)
+library(dplyr)
+library(cowplot)    # <- NEW: for plot_grid
+library(htmltools)
+
+plots <- list()
+
+group_vars <- c("strain", "media", "treatment", "well", "plate.id")
+
+gc_test %>%
+  group_by(across(all_of(group_vars))) %>%
+  group_walk(~{
+    data_group <- .x
+    keys <- .y
+    group_name <- paste(paste(names(keys), keys, sep = "=", collapse = ", "))
+    
+    summ <- gc_test2 %>%
+      filter(
+        strain    == keys$strain,
+        media     == keys$media,
+        treatment == keys$treatment,
+        well      == keys$well,
+        plate.id  == keys$plate.id
+      )
+    
+    ## --- Plot 0: raw corrected OD
+    p0 <- ggplot(data_group, aes(x = time_h, y = corrected)) +
+      geom_point() +
+      labs(title = paste("Corrected OD:", group_name),
+           y = "Corrected OD", x = "Time")
+    
+    ## --- Plot 1: log(corrected OD) with tangent
+    p1 <- ggplot(data_group, aes(x = time_h, y = log(corrected))) +
+      geom_point() +
+      geom_abline(
+        data = summ,
+        aes(slope = max_percap,
+            intercept = log(max_percap_dens) - max_percap * max_percap_time),
+        color = "red", inherit.aes = FALSE
+      ) +
+      geom_vline(
+        data = summ, aes(xintercept = lag_time),
+        linetype = "dashed", color = "blue", inherit.aes = FALSE
+      ) +
+      geom_hline(
+        data = summ, aes(yintercept = log(min_dens)),
+        linetype = "dotted", color = "black", inherit.aes = FALSE
+      ) +
+      labs(title = "Log(corrected OD)",
+           y = "log(corrected OD)", x = "Time")
+    
+    ## --- Plot 2: derivative over time
+    p2 <- ggplot(data_group, aes(x = time_h, y = percap_deriv)) +
+      geom_line() +
+      geom_point(
+        data = summ, aes(x = max_percap_time, y = max_percap),
+        color = "red", size = 2, inherit.aes = FALSE
+      ) +
+      geom_vline(
+        data = summ, aes(xintercept = lag_time),
+        linetype = "dashed", color = "blue", inherit.aes = FALSE
+      ) +
+      labs(title = "Per-capita derivative",
+           y = "Derivative", x = "Time") +
+      coord_cartesian(ylim = c(-1, NA))
+    
+    ## --- Combine vertically: cowplot is more stable than patchwork here
+    combined <- cowplot::plot_grid(p0, p1, p2, ncol = 1, align = "v")
+    
+    plots[[group_name]] <<- combined
+  })
+
+# non-interactive HTML output
+outdir <- tempdir()
+
+htmltools::save_html(
+  tagList(lapply(names(plots), function(nm) {
+    f <- file.path(outdir, paste0(nm, ".png"))
+    # save combined grid to PNG
+    ggsave(f, plots[[nm]], width = 8, height = 8, dpi = 120)
+    tags$div(
+      style = "page-break-after: always;",
+      tags$h2(nm),
+      tags$img(src = f, style = "width:100%;")
+    )
+  })),
+  file = "growthcurve_comparison_3.html"
+)
+
+

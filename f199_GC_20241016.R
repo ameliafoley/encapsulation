@@ -59,6 +59,11 @@ ggplot(data = test, aes(x = time_h, y = OD600, color = treatment, shape = media)
   ggtitle("F199 in 48-Well Plate")+
   facet_wrap(~strain+media)
 
+ggplot(data = control, aes(x = time_h, y = OD600, color = treatment, shape = media)) +
+  geom_point() + geom_smooth(se = FALSE) + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
+  ggtitle("F199 in 48-Well Plate")+
+  facet_wrap(~strain+media)
 #take averages of blanks
 #LB cap .6
 #LB free .5
@@ -75,6 +80,7 @@ merge<- merge(test, initial, by = "well")
 
 merge$corrected<- merge$OD600 - merge$initial #initial subtraction
 merge[merge < 0 ] <- 0 #convert negative values to zero
+merge_1016 <- merge
 
 ggplot(data = merge, aes(x = time_h, y = corrected, color = treatment)) +
   geom_point() + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 

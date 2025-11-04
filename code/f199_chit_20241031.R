@@ -76,6 +76,7 @@ merge<- merge(test, initial, by = "well")
 
 merge$corrected<- merge$OD600 - merge$initial #initial subtraction
 merge[merge < 0 ] <- 0 #convert negative values to zero
+merge_1031<- merge
 
 ggplot(data = merge, aes(x = time_h, y = corrected, color = treatment)) +
   geom_point() + theme_classic() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 

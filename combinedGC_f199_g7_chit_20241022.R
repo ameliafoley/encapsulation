@@ -51,22 +51,23 @@ test<- test %>% filter(rank<175)
 glimpse(test)
 glimpse(all)
 
-ggplot(data = test, aes(x = time_h, y = corrected, color = strain)) +
+ggplot(data = test, aes(x = time_h, y = corrected, color = treatment)) +
   geom_point()+
   #stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8))+
   theme_pubr() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
   ggtitle("F199 and G7 Growth Curves")+
-  facet_wrap(~media + treatment, ncol = 2)
-
-ggplot(data = test, aes(x = time_h, y = corrected, color = treatment)) +
-  geom_line() + 
+  facet_wrap(~strain + media, ncol = 2)
+#n.aroma alone
+n.aroma<- test %>% filter(strain == "n.aroma") %>% filter(media == "sRB15") %>% filter(treatment == "cap")
+ggplot(data = n.aroma, aes(x = time_h, y = corrected, color = well)) +
+  geom_point() + 
   #stat_summary(geom="point", fun = mean) +
   #stat_summary(geom = "errorbar", width = .1, position = position_dodge(0.8))+
   theme_pubr() + xlab("Time (hr)") + ylab("OD600 (Corrected)") + 
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
   ggtitle("F199 and G7 Growth Curves")+
-  facet_wrap(~strain + media, ncol = 2)
+  facet_wrap(~well, ncol = 2)
 
 ggplot(data = test, aes(x = time_h, y = corrected, color = treatment)) +
   stat_summary(geom="point", fun = mean) +
@@ -161,11 +162,94 @@ p_f199.<- ggplot(data = f199, aes(x = time_h, y = corrected, color = treatment))
   labs(color = "Treatment")
 p_f199.
 
+##line type rather than color
+p_g7.line <- ggplot(data = g7, aes(x = time_h, y = corrected, 
+                              color = treatment, linetype = treatment)) +
+  # Mean line
+  stat_summary(fun = mean, geom = "line", size = 1.5) +
+  
+  # Shaded error band (mean ± sd or se; here I used mean_se)
+  stat_summary(fun.data = mean_se, geom = "ribbon", 
+               alpha = 0.25, color = NA, fill = "grey70", show.legend = FALSE) +
+  
+  theme_pubr() + 
+  xlab("Time (hr)") + 
+  ylab("OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown(), 
+        legend.text = element_text(size = 13), 
+        legend.title = element_text(size = 14), 
+        legend.key.width = unit(1.5, "cm"), 
+        legend.key.height = unit(0.6, "cm")) +
+  ggtitle("*P. putida*") +
+  facet_wrap(~media) +
+  
+  # Keep your custom colors but now add linetypes too
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod3",
+                                "free" = "sienna3"),
+                     labels = c("cap"="capsule", 
+                                "chit" = "chitosan-coated capsule", 
+                                "free" = "planktonic")) +
+  scale_linetype_manual(values = c("cap" = "solid", 
+                                   "chit" = "dashed", 
+                                   "free" = "dotted")) +
+  guides(color = guide_legend(title = "Treatment"),
+         linetype = guide_legend(title = "Treatment"))+
+  labs(color = "Treatment", linetype = "Treatment")+
+  guides(color = guide_legend(override.aes = list(linetype = c("solid", "dashed", "dotted"),
+                                                  color = c("aquamarine4", "darkgoldenrod3", "sienna3"))), 
+         linetype = "none", 
+         fill = "none") #show only combined
+
+p_g7.line
+p_f199.line <- ggplot(data = f199, aes(x = time_h, y = corrected, 
+                                   color = treatment, linetype = treatment)) +
+  # Mean line
+  stat_summary(fun = mean, geom = "line", size = 1.5) +
+  
+  # Shaded error band (mean ± sd or se; here I used mean_se)
+  stat_summary(fun.data = mean_se, geom = "ribbon", 
+               alpha = 0.25, color = NA, fill = "grey70", show.legend = FALSE) +
+  
+  theme_pubr() + 
+  xlab("Time (hr)") + 
+  ylab("OD600") + 
+  theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed"), 
+        plot.title = element_markdown(), 
+        legend.text = element_text(size = 13), 
+        legend.title = element_text(size = 14), 
+        legend.key.width = unit(2.5, "cm"), 
+        legend.key.height = unit(0.6, "cm")) +
+  ggtitle("*N. aromaticivorans*") +
+  facet_wrap(~media) +
+  
+  # Keep your custom colors but now add linetypes too
+  scale_color_manual(values = c("cap" = "aquamarine4",
+                                "chit" = "darkgoldenrod3",
+                                "free" = "sienna3"),
+                     labels = c("cap"="capsule", 
+                                "chit" = "chitosan-coated capsule", 
+                                "free" = "planktonic")) +
+  scale_linetype_manual(values = c("cap" = "solid", 
+                                   "chit" = "dashed", 
+                                   "free" = "dotted")) +
+  theme(legend.position = "none") #don't show legend on this one so there is only one when combined
+p_f199.line
+
+##original with color
 bothgc<- grid.arrange(p_g7., p_f199.)
 bothgc.<- plot_grid(p_g7., p_f199., nrow = 2, labels = c('A', 'B'), label_size = 12)
 bothgc.
-ggsave(here("results", "growthcurves.png"), bothgc., width = 7, height = 7, units = "in")
+ggsave(here("results", "growthcurves-fixed.png"), bothgc., width = 7, height = 7, units = "in")
 
+##color and lines
+linegc.<- plot_grid(p_g7.line, p_f199.line, nrow = 2, labels = c('A', 'B'), label_size = 12)
+linegc.
+ggsave(here("results", "growthcurves-line.png"), linegc., width = 7.5, height = 7, units = "in")
+
+
+##
 
 #combo of both strains (not as easy to interpret)
 ggplot(data = fixed, aes(x = time_h, y = corrected, color = strain)) +
@@ -199,4 +283,6 @@ ggplot(data = free.only, aes(x = time_h, y = OD600, color = strain)) +
 
 #F199 LB - cap/chit p = 0.0472, cap/free NS, chit/free p = 0.0128
 #split at intersection point hr 35 - ANOVA all sig, then Tukey cap/chit p = 0.0116, cap/free NS, chit/free p = .0007
+
+
 

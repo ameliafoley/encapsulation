@@ -80,8 +80,9 @@ p_citrate
 p_citrate.<- plot_grid(p_plank, p_im, nrow = 1, labels = c('A', 'B'), label_size = 12, align = "h")
 p_citrate.
 ggsave(here("results", "citrate.png"), p_citrate., width = 7, height = 4, units = "in")
-
-
+p_citrate.swap<- plot_grid(p_im, p_plank, nrow = 1, labels = c('A', 'B'), label_size = 12, align = "h")
+p_citrate.swap
+ggsave(here("results", "citrate.swap.png"), p_citrate.swap, width = 7, height = 4, units = "in")
 
 #STATS
 free$time<- as.factor(free$time)
