@@ -222,6 +222,15 @@ strainfinal_leg
 ggsave(here("results", "strain_fig.png"), strainfinal_leg, width = 6.5, height = 5, units = "in", bg = "white")
 grid.arrange(p_ag7.brac, p_af199.brac, nrow = 1)
 
+#no G7 or F199 label
+p_strain.cld.<- plot_grid(p_ag7.cld , 
+                          p_af199.cld + theme(legend.position = "none"),
+                          nrow = 1, labels = c('A', 'B'), label_size = 12)
+p_strain.cld.<- ggdraw(p_strain.cld.)
+strainfinal_leg.notitle<- plot_grid(legend, p_strain.cld., ncol = 1, rel_heights = c(.1, 1))
+strainfinal_leg.notitle
+ggsave(here("results", "strain_fig.notitle.png"), strainfinal_leg.notitle, width = 6.5, height = 5, units = "in", bg = "white")
+
 #exp b - alginate
 exp_b<- longalltest_1 %>% filter(exp == "b") 
 exp_b<- exp_b %>% dplyr::select(-coating)

@@ -813,7 +813,7 @@ run_global_anova <- function(df, response_var, contrasts_sum = TRUE, print_resul
   # Type III (marginal) table via car::Anova (recommended if interactions present)
   # car::Anova expects contrasts set to contr.sum (we did that)
   type3_tab <- car::Anova(fit_lm, type = "III")
-
+  
   
   # Optional: pairwise post-hoc with emmeans if main effect or interaction of interest is significant.
   # We'll compute emmeans for treatment within strain*media interaction (so you can extract contrasts within each cell)

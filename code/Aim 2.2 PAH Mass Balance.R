@@ -1,4 +1,4 @@
-##Run Aim 2.2 PAH Figures first becuase this file depends on objects created in that one! 
+##Run Aim 2.2 PAH Figures first because this file depends on objects created in that one! 
 library(dplyr)
 library(tidyr)
 library(ggplot2)

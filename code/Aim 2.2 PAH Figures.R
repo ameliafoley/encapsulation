@@ -57,6 +57,7 @@ merged.consortia.adj <- merged.consortia.adj %>%
     fluoranthene_bdl = fluoranthene < 0.33
   )
 
+saveRDS(merged.consortia.adj, "merged.consortia.adj2.2")
 
 ##full workflow
 #keep raw values in long format with flags
@@ -117,6 +118,7 @@ ggplot() +
   facet_wrap(~ compound + consortia, ncol = 4, scales = "free_y") +
   theme_classic()
 ##
+saveRDS(sum_long, "2.2_long.rds")
 ##separate plots
 # Make a plotting function for reuse
 plot_pah <- function(df, compound_name) {

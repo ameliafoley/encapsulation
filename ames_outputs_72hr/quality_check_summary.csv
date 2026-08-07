@@ -1,0 +1,11 @@
+exp,strain,s9,dmso_n,treatments,missing_total
+1,TA98,no,2,24,0
+2,TA100,no,2,24,0
+3,TA100,no,2,24,0
+3,TA98,no,2,24,0
+4,TA98,yes,3,48,0
+5,TA100,yes,3,48,0
+6,TA98,no,3,48,0
+7,TA98,yes,3,48,0
+8,TA100,no,4,48,0
+9,TA100,yes,8,48,0

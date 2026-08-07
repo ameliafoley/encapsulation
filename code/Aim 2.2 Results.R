@@ -97,8 +97,8 @@ to_remove
 #remove and clean
 clean_qpcr <- merged_qpcr %>%
   filter(
-    # remove the 6 samples from plate 2
-    !(plate_id == 2 & sample %in% c("M-CA-7", "M-CB-7", "M-CC-7", 
+    # remove the 6 samples from plate 2 8/7/26 updated this to add FAM and Texas Red qualifier bc pputida and presin data was missing
+    !(plate_id == 2 & fluor %in% c("FAM", "Texas Red") & sample %in% c("M-CA-7", "M-CB-7", "M-CC-7", 
                                     "M-FA-7", "M-FB-7", "M-FC-7")),
     
     # remove FAM + Texas Red from plate 5
@@ -185,7 +185,8 @@ ggplot(qpcr_summary, aes(x = day, y = mean_gene_copies, color = sample.type)) +
   geom_line(aes(group = sample.type), size = 1) +
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = mean_gene_copies - se_gene_copies, ymax = mean_gene_copies + se_gene_copies), width = 0.2) +
-  scale_y_log10(labels = scales::comma_format()) +
+  scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
+                labels = trans_format( "log10", math_format(10^.x) )) +
   labs(
     title = "Mean Gene Copies per Sample Volume Over Time (with SE)",
     x = "Time (days)",
@@ -230,7 +231,8 @@ ggplot(qpcr_summary_ind, aes(x = day, y = mean_gene_copies, color = strain)) +
   geom_line(aes(group = strain), size = 1) +
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = mean_gene_copies - se_gene_copies, ymax = mean_gene_copies + se_gene_copies), width = 0.2) +
-  scale_y_log10(labels = scales::comma_format()) +
+  scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
+                labels = trans_format( "log10", math_format(10^.x) ))+
   labs(
     title = "Mean Gene Copies per mL",
     x = "Time (days)",
@@ -277,7 +279,8 @@ ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
     width = 0.2,
     position = pd
   ) +
-  scale_y_log10(labels = scales::scientific) +  
+  scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
+                labels = trans_format( "log10", math_format(10^.x) ))+ 
   facet_grid(consortia ~ sample.type) +
   labs(
     title = "Mean Gene Copies per mL",
@@ -314,7 +317,8 @@ strain_labels <- c(
   "n.penta"   = "italic('N. pentaromativorans')",
   "p.putida"  = "italic('P. putida')"
 )
-#colors for strains
+
+#original colors for strains
 # R-strategists (warm)
 r_colors <- c(
   "a.venet"  = "#E64B35",  # vermilion
@@ -332,8 +336,27 @@ k_colors <- c(
 # combine palette
 strain_colors <- c(k_colors, r_colors)
 
+#new colors for strains
+c("#61BEA4FF", "#B6E7E0FF", "#AA3F5DFF", "#DAA5ACFF", "#98A54FFF", "#2E92A2FF", "#FFB651FF", "#D85A44FF") #Moma Colors "Lupi"
+r_colors <- c(
+  "a.venet"  = "#D85A44FF",  # vermilion
+  "p.resin"  = "#DAA5ACFF",  # coral
+  "p.putida" = "#FFB651FF"   # gold
+)
 
-ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
+# K-strategists (cool)
+k_colors <- c(
+  "a.faecalis" = "#B6E7E0FF", # cyan/blue
+  "sphingo.sp" = "#98A54FFF", # teal
+  "n.penta"    = "#2E92A2FF"  # deep blue
+)
+
+# combine palette
+strain_colors <- c(k_colors, r_colors)
+
+lod_50 <- qpcr_avg_ind %>% filter(mean_sq > 50) #filter out values outside of standard curve/limit of detection
+
+ggplot(lod_50, aes(x = day, y = gene_copies_per_mL, color = strain, shape = strain)) +
   stat_summary(
     fun = mean,
     geom = "line",
@@ -352,7 +375,8 @@ ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
     width = 0.2,
     position = pd
   ) +
-  scale_y_log10(labels = scales::scientific) +  
+  scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
+                labels = trans_format( "log10", math_format(10^.x) ))+  
   facet_grid(consortia ~ sample.type, labeller = labeller(
     sample.type = as_labeller(my_labels$sample.type), 
     consortia = as_labeller(my_labels$consortia)
@@ -360,16 +384,38 @@ ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
   labs(
     title = "Mean Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)",
-    color = "Treatment"
+    x = "Time (days)"
   ) +
-  theme_classic()+
+  theme_pubr()+
   theme(
-    strip.text = element_text(size = 12, face = "bold"),
-    strip.background = element_rect(fill = "grey90", color = NA)
+    strip.text = element_text(size = 12, face = "italic")
+    #strip.background = element_rect(fill = "grey90", color = NA)
   )+ scale_x_continuous(breaks = c(0, 7, 14, 21, 42))+
   scale_color_manual(values = strain_colors, 
-                       labels = function(x) parse(text = strain_labels[x]))
+                     name = "Strain",
+                       labels = function(x) parse(text = strain_labels[x]))+
+  scale_shape_manual(
+    name = "Strain",
+    values = c(
+      "a.faecalis" = 16,
+      "a.venet"    = 17,
+      "n.penta"    = 15,
+      "p.putida"   = 3,
+      "p.resin"    = 4,
+      "sphingo.sp" = 8
+    ),
+    labels = function(x) parse(text = strain_labels[x])
+  )+
+  
+  guides(
+    colour = guide_legend(
+      override.aes = list(
+        shape = c(16, 17, 15, 3, 4, 8),
+        linewidth = .5
+      )
+    ),
+    shape = "none"
+  )
   
 
 ##MASS BALANCE FOR QPCR DATA#
@@ -377,7 +423,7 @@ ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
 library(dplyr)
 library(tidyr)
 
-df <- qpcr_avg_ind
+df <- lod_50 #was qpcr_avg_ind before updating based on LOD of 50 cp.uL
 
 # standardize sample.type values so 'planktonic' maps to 'supernatant'
 df <- df %>%
@@ -460,7 +506,7 @@ my_labels <- list(
     "r" = "R-Strat"
   )
 )
-ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain)) +
+ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain, shape = strain)) +
   stat_summary(
     fun = mean,
     geom = "line",
@@ -479,7 +525,8 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain)) +
     width = 0.2,
     position = pd
   ) +
-  scale_y_log10(labels = scales::scientific) +  
+  scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
+                labels = trans_format( "log10", math_format(10^.x) )) +  
   facet_grid(consortia ~ treatment, labeller = labeller(
     treatment = as_labeller(my_labels$treatment), 
     consortia = as_labeller(my_labels$consortia)
@@ -488,13 +535,262 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain)) +
     title = "Mass Balance - Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
     x = "Time (days)",
-    color = "Treatment"
+    color = "Strain"
   ) +
-  theme_classic()+
+  theme_pubr()+
   theme(
-    strip.text = element_text(size = 12, face = "bold"),
-    strip.background = element_rect(fill = "grey90", color = NA)
+    strip.text = element_text(size = 12, face = "italic")
+    #strip.background = element_rect(fill = "grey90", color = NA)
   )+ scale_x_continuous(breaks = c(0, 7, 14, 21, 42))+
   scale_color_manual(values = strain_colors, 
-                     labels = function(x) parse(text = strain_labels[x]))
+                     name = "Strain",
+                     labels = function(x) parse(text = strain_labels[x]))+
+  scale_shape_manual(
+    name = "Strain",
+    values = c(
+      "a.faecalis" = 16,
+      "a.venet"    = 17,
+      "n.penta"    = 15,
+      "p.putida"   = 3,
+      "p.resin"    = 4,
+      "sphingo.sp" = 8
+    ),
+    labels = function(x) parse(text = strain_labels[x])
+  )+
+  
+  guides(
+    colour = guide_legend(
+      override.aes = list(
+        shape = c(16, 17, 15, 3, 4, 8),
+        linewidth = .5
+      )
+    ),
+    shape = "none"
+  )
+##STATS
+###############################################################
+# Split by consortium
+###############################################################
 
+k_data <- qpcr_stats %>%
+  filter(consortia == "k")
+
+m_data <- qpcr_stats %>%
+  filter(consortia == "m")
+
+r_data <- qpcr_stats %>%
+  filter(consortia == "r")
+###############################################################
+# Analyze one consortium
+###############################################################
+
+analyze_consortium <- function(dat){
+  
+  fit <-
+    
+    aov(
+      
+      log_gc ~
+        
+        strain *
+        treatment *
+        day,
+      
+      data = dat
+      
+    )
+  
+  print(summary(fit))
+  
+  ###########################################################
+  # Encapsulated vs free
+  ###########################################################
+  
+  emm_treatment <-
+    
+    emmeans(
+      
+      fit,
+      
+      ~ treatment |
+        
+        strain * day
+      
+    )
+  
+  treatment_tests <-
+    
+    pairs(
+      
+      emm_treatment,
+      
+      adjust = "tukey"
+      
+    )
+  
+  ###########################################################
+  # Day comparisons
+  ###########################################################
+  
+  emm_day <-
+    
+    emmeans(
+      
+      fit,
+      
+      ~ day |
+        
+        strain * treatment
+      
+    )
+  
+  day_tests <-
+    
+    pairs(
+      
+      emm_day,
+      
+      adjust = "tukey"
+      
+    )
+  
+  list(
+    
+    fit = fit,
+    
+    treatment_emm = emm_treatment,
+    
+    treatment_tests = treatment_tests,
+    
+    day_emm = emm_day,
+    
+    day_tests = day_tests
+    
+  )
+  
+}
+stats_k <- analyze_consortium(k_data)
+
+stats_m <- analyze_consortium(m_data)
+
+stats_r <- analyze_consortium(r_data)
+summary(stats_k$fit)
+stats_k$treatment_tests #npenta day 42 not significant; sphingo days 0, 7, 14, 21 are signficant
+
+summary(stats_m$fit)
+stats_m$treatment_tests 
+#n penta day 7 *, npenta day 14 *, n penta day 42 p = 0.0503
+
+###############################################################
+# Community-level qPCR ANOVA
+###############################################################
+
+qpcr_comm <- qpcr_avg %>%
+  filter(mean_sq > 50) %>%
+  mutate(
+    log_gc = log10(gene_copies_per_mL),
+    day = factor(day, levels = c(0, 7, 14, 21, 42)),
+    treatment = factor(treatment, levels = c("free", "encapsulated")),
+    consortia = factor(consortia, levels = c("k", "m", "r"))
+  )
+
+community_fit <- aov(
+  log_gc ~ consortia * treatment * day,
+  data = qpcr_comm
+)
+
+summary(community_fit) #** in consortia*treatment*day -> subdividing by consortia is suitable(what we did above)
+
+#invidiaul sstrain effect of treatment based on consortia
+putida <- qpcr_stats %>%
+  filter(strain == "p.putida")
+
+fit_putida <- aov(
+  log_gc ~ consortia * treatment * day,
+  data = putida
+)
+summary(fit_putida)
+
+###############################################################
+# Analyze one strain across consortia
+###############################################################
+
+analyze_strain <- function(strain_name){
+  
+  dat <- qpcr_stats %>%
+    filter(strain == strain_name)
+  
+  fit <- aov(
+    log_gc ~
+      consortia *
+      treatment *
+      day,
+    data = dat
+  )
+  
+  print(summary(fit))
+  
+  ###########################################################
+  # Treatment comparisons
+  ###########################################################
+  
+  emm_treatment <- emmeans(
+    fit,
+    ~ treatment | consortia * day
+  )
+  
+  treatment_tests <- pairs(
+    emm_treatment,
+    adjust = "tukey"
+  )
+  
+  ###########################################################
+  # Consortium comparisons
+  ###########################################################
+  
+  emm_consortia <- emmeans(
+    fit,
+    ~ consortia | treatment * day
+  )
+  
+  consortia_tests <- pairs(
+    emm_consortia,
+    adjust = "tukey"
+  )
+  
+  ###########################################################
+  # Day comparisons
+  ###########################################################
+  
+  emm_day <- emmeans(
+    fit,
+    ~ day | consortia * treatment
+  )
+  
+  day_tests <- pairs(
+    emm_day,
+    adjust = "tukey"
+  )
+  
+  list(
+    fit = fit,
+    treatment_emm = emm_treatment,
+    treatment_tests = treatment_tests,
+    consortia_emm = emm_consortia,
+    consortia_tests = consortia_tests,
+    day_emm = emm_day,
+    day_tests = day_tests
+  )
+  
+}
+###############################################################
+# Shared strains
+###############################################################
+
+stats_putida <- analyze_strain("p.putida")
+
+stats_npenta <- analyze_strain("n.penta") #yes * in consortia*treatment*day
+
+stats_sphingo <- analyze_strain("sphingo.sp")
+
+stats_presin <- analyze_strain("p.resin")

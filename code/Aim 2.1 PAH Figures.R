@@ -39,6 +39,7 @@ sum_fla<- clean %>% group_by(strain, day, treatment) %>% summarise(fluoranthene_
                                                                        fluoranthene_se = sd(concentration.ngml) / sqrt(n()), 
 
                                                                                                                                           )
+saveRDS(sum_fla, "sum_fla2.1.rds")
 
 bacteria_names <- list(
   'a.venet'="A. venetianus",

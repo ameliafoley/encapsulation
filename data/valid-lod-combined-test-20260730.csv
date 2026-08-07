@@ -1,0 +1,448 @@
+﻿Well,Fluor,Sample,Cq,SQ,Target
+A01,Cy5,Std-01,6.65,500000000.00000,afaec
+A02,Cy5,Std-01,7.01,500000000.00000,afaec
+A03,Cy5,Std-01,7.12,500000000.00000,afaec
+A04,Cy5,Std-09,6.93,500000000.00000,afaec
+A05,Cy5,Std-09,6.93,500000000.00000,afaec
+A10,Cy5,NTC,,,afaec
+B01,Cy5,Std-02,13.17,50000000.00000,afaec
+B02,Cy5,Std-02,13.41,50000000.00000,afaec
+B03,Cy5,Std-02,13.41,50000000.00000,afaec
+B04,Cy5,Std-10,13.36,50000000.00000,afaec
+B05,Cy5,Std-10,13.27,50000000.00000,afaec
+C01,Cy5,Std-03,16.05,5000000.00000,afaec
+C02,Cy5,Std-03,16.51,5000000.00000,afaec
+C03,Cy5,Std-03,16.42,5000000.00000,afaec
+C04,Cy5,Std-11,16.29,5000000.00000,afaec
+C05,Cy5,Std-11,16.56,5000000.00000,afaec
+D01,Cy5,Std-04,21.12,500000.00000,afaec
+D02,Cy5,Std-04,20.84,500000.00000,afaec
+D03,Cy5,Std-04,20.80,500000.00000,afaec
+D04,Cy5,Std-12,20.81,500000.00000,afaec
+D05,Cy5,Std-12,20.75,500000.00000,afaec
+E01,Cy5,Std-05,25.11,50000.00000,afaec
+E02,Cy5,Std-05,24.38,50000.00000,afaec
+E03,Cy5,Std-05,24.57,50000.00000,afaec
+E04,Cy5,Std-13,24.35,50000.00000,afaec
+E05,Cy5,Std-13,24.27,50000.00000,afaec
+F01,Cy5,Std-06,28.51,5000.00000,afaec
+F02,Cy5,Std-06,28.05,5000.00000,afaec
+F03,Cy5,Std-06,27.89,5000.00000,afaec
+F04,Cy5,Std-14,28.92,5000.00000,afaec
+F05,Cy5,Std-14,28.34,5000.00000,afaec
+G01,Cy5,Std-07,32.07,500.00000,afaec
+G02,Cy5,Std-07,32.08,500.00000,afaec
+G03,Cy5,Std-07,32.01,500.00000,afaec
+G04,Cy5,Std-15,32.00,500.00000,afaec
+G05,Cy5,Std-15,32.33,500.00000,afaec
+H01,Cy5,Std-08,,50.00000,afaec
+H02,Cy5,Std-08,38.36,50.00000,afaec
+H03,Cy5,Std-08,,50.00000,afaec
+H04,Cy5,Std-16,37.90,50.00000,afaec
+H05,Cy5,Std-16,,50.00000,afaec
+A01,FAM,Std-01,3.82,500000000.00000,npenta
+A02,FAM,Std-01,3.88,500000000.00000,npenta
+A03,FAM,Std-01,3.42,500000000.00000,npenta
+A08,FAM,Std-25,3.40,500000000.00000,npenta
+A09,FAM,Std-25,3.65,500000000.00000,npenta
+B01,FAM,Std-02,7.82,50000000.00000,npenta
+B02,FAM,Std-02,9.02,50000000.00000,npenta
+B03,FAM,Std-02,8.65,50000000.00000,npenta
+B08,FAM,Std-26,10.09,50000000.00000,npenta
+B09,FAM,Std-26,10.21,50000000.00000,npenta
+C01,FAM,Std-03,16.70,5000000.00000,npenta
+C02,FAM,Std-03,15.81,5000000.00000,npenta
+C03,FAM,Std-03,15.45,5000000.00000,npenta
+C08,FAM,Std-27,15.28,5000000.00000,npenta
+C09,FAM,Std-27,15.44,5000000.00000,npenta
+C10,FAM,NTC,,,npenta
+D01,FAM,Std-04,20.71,500000.00000,npenta
+D02,FAM,Std-04,20.96,500000.00000,npenta
+D03,FAM,Std-04,20.69,500000.00000,npenta
+D08,FAM,Std-28,20.45,500000.00000,npenta
+D09,FAM,Std-28,19.76,500000.00000,npenta
+E01,FAM,Std-05,24.57,50000.00000,npenta
+E02,FAM,Std-05,24.13,50000.00000,npenta
+E03,FAM,Std-05,24.68,50000.00000,npenta
+E08,FAM,Std-29,23.23,50000.00000,npenta
+E09,FAM,Std-29,22.84,50000.00000,npenta
+F01,FAM,Std-06,27.25,5000.00000,npenta
+F02,FAM,Std-06,27.67,5000.00000,npenta
+F03,FAM,Std-06,27.58,5000.00000,npenta
+F08,FAM,Std-30,26.76,5000.00000,npenta
+F09,FAM,Std-30,26.51,5000.00000,npenta
+G01,FAM,Std-07,30.33,500.00000,npenta
+G02,FAM,Std-07,30.21,500.00000,npenta
+G03,FAM,Std-07,30.26,500.00000,npenta
+G08,FAM,Std-31,29.41,500.00000,npenta
+G09,FAM,Std-31,29.39,500.00000,npenta
+H01,FAM,Std-08,35.37,50.00000,npenta
+H02,FAM,Std-08,37.95,50.00000,npenta
+H03,FAM,Std-08,,50.00000,npenta
+H08,FAM,Std-32,33.95,50.00000,npenta
+H09,FAM,Std-32,34.83,50.00000,npenta
+A01,Texas Red,Std-01,5.72,500000000.00000,sphingo
+A02,Texas Red,Std-01,5.44,500000000.00000,sphingo
+A03,Texas Red,Std-01,6.37,500000000.00000,sphingo
+A06,Texas Red,Std-17,7.04,500000000.00000,sphingo
+A07,Texas Red,Std-17,5.17,500000000.00000,sphingo
+B01,Texas Red,Std-02,,50000000.00000,sphingo
+B02,Texas Red,Std-02,14.46,50000000.00000,sphingo
+B03,Texas Red,Std-02,15.68,50000000.00000,sphingo
+B06,Texas Red,Std-18,13.79,50000000.00000,sphingo
+B07,Texas Red,Std-18,13.72,50000000.00000,sphingo
+B10,Texas Red,NTC,,,sphingo
+C01,Texas Red,Std-03,4.71,5000000.00000,sphingo
+C02,Texas Red,Std-03,18.28,5000000.00000,sphingo
+C03,Texas Red,Std-03,19.44,5000000.00000,sphingo
+C06,Texas Red,Std-19,18.35,5000000.00000,sphingo
+C07,Texas Red,Std-19,18.32,5000000.00000,sphingo
+D01,Texas Red,Std-04,21.40,500000.00000,sphingo
+D02,Texas Red,Std-04,21.57,500000.00000,sphingo
+D03,Texas Red,Std-04,21.14,500000.00000,sphingo
+D06,Texas Red,Std-20,21.23,500000.00000,sphingo
+D07,Texas Red,Std-20,20.88,500000.00000,sphingo
+E01,Texas Red,Std-05,25.08,50000.00000,sphingo
+E02,Texas Red,Std-05,25.04,50000.00000,sphingo
+E03,Texas Red,Std-05,26.07,50000.00000,sphingo
+E06,Texas Red,Std-21,25.33,50000.00000,sphingo
+E07,Texas Red,Std-21,25.51,50000.00000,sphingo
+F01,Texas Red,Std-06,27.76,5000.00000,sphingo
+F02,Texas Red,Std-06,28.65,5000.00000,sphingo
+F03,Texas Red,Std-06,28.13,5000.00000,sphingo
+F06,Texas Red,Std-22,27.37,5000.00000,sphingo
+F07,Texas Red,Std-22,27.49,5000.00000,sphingo
+G01,Texas Red,Std-07,33.33,500.00000,sphingo
+G02,Texas Red,Std-07,34.19,500.00000,sphingo
+G03,Texas Red,Std-07,33.11,500.00000,sphingo
+G06,Texas Red,Std-23,33.58,500.00000,sphingo
+G07,Texas Red,Std-23,32.34,500.00000,sphingo
+H01,Texas Red,Std-08,,50.00000,sphingo
+H02,Texas Red,Std-08,,50.00000,sphingo
+H03,Texas Red,Std-08,38.51,50.00000,sphingo
+H06,Texas Red,Std-24,36.08,50.00000,sphingo
+H07,Texas Red,Std-24,34.95,50.00000,sphingo
+A01,Cy5,Std-1,25.83,250.00000,presin
+A02,Cy5,Std-1,26.05,250.00000,presin
+A03,Cy5,Std-1,25.74,250.00000,presin
+A04,Cy5,Std-1,26.37,250.00000,presin
+A05,Cy5,Std-1,25.48,250.00000,presin
+A06,Cy5,Std-1,25.81,250.00000,presin
+A07,Cy5,Std-1,25.96,250.00000,presin
+A08,Cy5,Std-1,25.94,250.00000,presin
+A09,Cy5,Std-1,25.43,250.00000,presin
+A10,Cy5,Std-1,25.58,250.00000,presin
+A11,Cy5,Std-9,28.72,50.00000,afaec
+A12,Cy5,NTC,,,presin
+B01,Cy5,Std-2,28.27,100.00000,presin
+B02,Cy5,Std-2,28.04,100.00000,presin
+B03,Cy5,Std-2,28.25,100.00000,presin
+B04,Cy5,Std-2,28.39,100.00000,presin
+B05,Cy5,Std-2,28.27,100.00000,presin
+B06,Cy5,Std-2,28.41,100.00000,presin
+B07,Cy5,Std-2,28.30,100.00000,presin
+B08,Cy5,Std-2,28.09,100.00000,presin
+B09,Cy5,Std-2,28.36,100.00000,presin
+B10,Cy5,Std-2,28.01,100.00000,presin
+B11,Cy5,Std-9,28.94,50.00000,afaec
+B12,Cy5,NTC,,,presin
+C01,Cy5,Std-3,28.99,50.00000,presin
+C02,Cy5,Std-3,29.30,50.00000,presin
+C03,Cy5,Std-3,29.23,50.00000,presin
+C04,Cy5,Std-3,29.14,50.00000,presin
+C05,Cy5,Std-3,29.31,50.00000,presin
+C06,Cy5,Std-3,29.27,50.00000,presin
+C07,Cy5,Std-3,28.83,50.00000,presin
+C08,Cy5,Std-3,29.26,50.00000,presin
+C09,Cy5,Std-3,29.03,50.00000,presin
+C10,Cy5,Std-3,28.93,50.00000,presin
+C11,Cy5,Std-9,29.21,50.00000,afaec
+C12,Cy5,Pos Ctrl,17.52,,presin
+D01,Cy5,Std-4,28.24,250.00000,presin
+D02,Cy5,Std-4,28.96,250.00000,presin
+D03,Cy5,Std-4,28.46,250.00000,presin
+D04,Cy5,Std-4,28.95,250.00000,presin
+D05,Cy5,Std-4,29.01,250.00000,presin
+D06,Cy5,Std-4,28.38,250.00000,presin
+D07,Cy5,Std-4,28.12,250.00000,presin
+D08,Cy5,Std-4,28.45,250.00000,presin
+D09,Cy5,Std-4,28.28,250.00000,presin
+D10,Cy5,Std-4,28.39,250.00000,presin
+D11,Cy5,Std-9,28.62,50.00000,presin
+D12,Cy5,Pos Ctrl,16.98,,
+E01,Cy5,Std-5,27.61,100.00000,presin
+E02,Cy5,Std-5,27.81,100.00000,presin
+E03,Cy5,Std-5,27.54,100.00000,presin
+E04,Cy5,Std-5,27.66,100.00000,presin
+E05,Cy5,Std-5,27.44,100.00000,presin
+E06,Cy5,Std-5,27.97,100.00000,presin
+E07,Cy5,Std-5,27.58,100.00000,presin
+E08,Cy5,Std-5,27.48,100.00000,presin
+E09,Cy5,Std-5,27.84,100.00000,presin
+E10,Cy5,Std-5,27.73,100.00000,presin
+E11,Cy5,Std-9,29.44,50.00000,
+E12,Cy5,Pos Ctrl,17.49,,
+F01,Cy5,Std-6,28.86,50.00000,presin
+F02,Cy5,Std-6,29.08,50.00000,presin
+F03,Cy5,Std-6,29.01,50.00000,presin
+F04,Cy5,Std-6,28.72,50.00000,presin
+F05,Cy5,Std-6,28.82,50.00000,presin
+F06,Cy5,Std-6,28.58,50.00000,presin
+F07,Cy5,Std-6,28.88,50.00000,presin
+F08,Cy5,Std-6,28.75,50.00000,presin
+F09,Cy5,Std-6,28.87,50.00000,presin
+F10,Cy5,Std-6,28.74,50.00000,presin
+F11,Cy5,Std-9,29.17,50.00000,afaec
+F12,Cy5,NTC,,,
+G01,Cy5,Std-7,26.55,250.00000,afaec
+G02,Cy5,Std-7,26.80,250.00000,afaec
+G03,Cy5,Std-7,27.11,250.00000,afaec
+G04,Cy5,Std-7,26.57,250.00000,afaec
+G05,Cy5,Std-7,26.47,250.00000,afaec
+G06,Cy5,Std-7,26.99,250.00000,afaec
+G07,Cy5,Std-7,26.69,250.00000,afaec
+G08,Cy5,Std-7,26.64,250.00000,afaec
+G09,Cy5,Std-7,26.54,250.00000,afaec
+G10,Cy5,Std-7,26.78,250.00000,afaec
+G11,Cy5,Std-9,28.78,50.00000,afaec
+G12,Cy5,NTC,,,afaec
+H01,Cy5,Std-8,27.99,100.00000,afaec
+H02,Cy5,Std-8,28.05,100.00000,afaec
+H03,Cy5,Std-8,27.82,100.00000,afaec
+H04,Cy5,Std-8,27.50,100.00000,afaec
+H05,Cy5,Std-8,28.07,100.00000,afaec
+H06,Cy5,Std-8,27.89,100.00000,afaec
+H07,Cy5,Std-8,27.92,100.00000,afaec
+H08,Cy5,Std-8,28.13,100.00000,afaec
+H09,Cy5,Std-8,28.06,100.00000,afaec
+H10,Cy5,Std-8,28.34,100.00000,afaec
+H11,Cy5,Std-9,29.36,50.00000,afaec
+H12,Cy5,NTC,,,
+A01,FAM,Std-1,,250.00000,npenta
+A02,FAM,Std-1,,250.00000,npenta
+A03,FAM,Std-1,,250.00000,npenta
+A04,FAM,Std-1,,250.00000,npenta
+A05,FAM,Std-1,,250.00000,npenta
+A06,FAM,Std-1,,250.00000,npenta
+A07,FAM,Std-1,,250.00000,npenta
+A08,FAM,Std-1,,250.00000,npenta
+A09,FAM,Std-1,,250.00000,npenta
+A10,FAM,Std-1,,250.00000,npenta
+A11,FAM,Std-9,29.25,50.00000,npenta
+A12,FAM,NTC,,,
+B01,FAM,Std-2,28.15,100.00000,npenta
+B02,FAM,Std-2,28.24,100.00000,npenta
+B03,FAM,Std-2,27.52,100.00000,npenta
+B04,FAM,Std-2,28.12,100.00000,npenta
+B05,FAM,Std-2,28.30,100.00000,npenta
+B06,FAM,Std-2,27.82,100.00000,npenta
+B07,FAM,Std-2,28.11,100.00000,npenta
+B08,FAM,Std-2,28.11,100.00000,npenta
+B09,FAM,Std-2,28.43,100.00000,npenta
+B10,FAM,Std-2,27.47,100.00000,npenta
+B11,FAM,Std-9,28.78,50.00000,npenta
+B12,FAM,NTC,,,npenta
+C01,FAM,Std-3,28.73,50.00000,npenta
+C02,FAM,Std-3,28.62,50.00000,npenta
+C03,FAM,Std-3,29.09,50.00000,npenta
+C04,FAM,Std-3,28.83,50.00000,npenta
+C05,FAM,Std-3,29.26,50.00000,npenta
+C06,FAM,Std-3,28.92,50.00000,npenta
+C07,FAM,Std-3,29.13,50.00000,npenta
+C08,FAM,Std-3,28.84,50.00000,npenta
+C09,FAM,Std-3,28.34,50.00000,npenta
+C10,FAM,Std-3,29.29,50.00000,npenta
+C11,FAM,Std-9,29.35,50.00000,npenta
+C12,FAM,Pos Ctrl,17.65,,
+D01,FAM,Std-4,26.11,250.00000,avenet
+D02,FAM,Std-4,26.46,250.00000,avenet
+D03,FAM,Std-4,26.71,250.00000,avenet
+D04,FAM,Std-4,26.75,250.00000,avenet
+D05,FAM,Std-4,26.22,250.00000,avenet
+D06,FAM,Std-4,26.50,250.00000,avenet
+D07,FAM,Std-4,26.26,250.00000,avenet
+D08,FAM,Std-4,26.21,250.00000,avenet
+D09,FAM,Std-4,26.21,250.00000,avenet
+D10,FAM,Std-4,26.43,250.00000,avenet
+D11,FAM,Std-9,29.54,50.00000,npenta
+D12,FAM,Pos Ctrl,15.34,12594457.53542,
+E01,FAM,Std-5,25.59,100.00000,avenet
+E02,FAM,Std-5,25.82,100.00000,avenet
+E03,FAM,Std-5,25.48,100.00000,avenet
+E04,FAM,Std-5,25.69,100.00000,avenet
+E05,FAM,Std-5,25.45,100.00000,avenet
+E06,FAM,Std-5,26.00,100.00000,avenet
+E07,FAM,Std-5,25.82,100.00000,avenet
+E08,FAM,Std-5,25.72,100.00000,avenet
+E09,FAM,Std-5,25.84,100.00000,avenet
+E10,FAM,Std-5,25.50,100.00000,avenet
+E11,FAM,Std-9,29.62,50.00000,npenta
+E12,FAM,Pos Ctrl,18.41,639898.49079,
+F01,FAM,Std-6,26.72,50.00000,avenet
+F02,FAM,Std-6,26.82,50.00000,avenet
+F03,FAM,Std-6,26.68,50.00000,avenet
+F04,FAM,Std-6,26.69,50.00000,avenet
+F05,FAM,Std-6,26.46,50.00000,avenet
+F06,FAM,Std-6,26.89,50.00000,avenet
+F07,FAM,Std-6,27.07,50.00000,avenet
+F08,FAM,Std-6,26.77,50.00000,avenet
+F09,FAM,Std-6,26.72,50.00000,avenet
+F10,FAM,Std-6,26.76,50.00000,avenet
+F11,FAM,Std-9,29.13,50.00000,npenta
+F12,FAM,NTC,,,
+G01,FAM,Std-7,26.63,250.00000,npenta
+G02,FAM,Std-7,27.11,250.00000,npenta
+G03,FAM,Std-7,26.76,250.00000,npenta
+G04,FAM,Std-7,26.83,250.00000,npenta
+G05,FAM,Std-7,26.55,250.00000,npenta
+G06,FAM,Std-7,27.04,250.00000,npenta
+G07,FAM,Std-7,26.47,250.00000,npenta
+G08,FAM,Std-7,27.01,250.00000,npenta
+G09,FAM,Std-7,26.89,250.00000,npenta
+G10,FAM,Std-7,26.54,250.00000,npenta
+G11,FAM,Std-9,29.12,50.00000,npenta
+G12,FAM,NTC,35.21,,npenta
+H01,FAM,Std-8,27.79,100.00000,npenta
+H02,FAM,Std-8,28.17,100.00000,npenta
+H03,FAM,Std-8,27.71,100.00000,npenta
+H04,FAM,Std-8,28.45,100.00000,npenta
+H05,FAM,Std-8,28.60,100.00000,npenta
+H06,FAM,Std-8,28.09,100.00000,npenta
+H07,FAM,Std-8,28.04,100.00000,npenta
+H08,FAM,Std-8,27.88,100.00000,npenta
+H09,FAM,Std-8,28.24,100.00000,npenta
+H10,FAM,Std-8,28.71,100.00000,npenta
+H11,FAM,Std-9,29.20,50.00000,npenta
+H12,FAM,NTC,,,npenta
+A01,HEX,Std-1,25.95,250.00000,pput
+A02,HEX,Std-1,26.10,250.00000,pput
+A03,HEX,Std-1,26.08,250.00000,pput
+A04,HEX,Std-1,26.79,250.00000,pput
+A05,HEX,Std-1,25.85,250.00000,pput
+A06,HEX,Std-1,26.06,250.00000,pput
+A07,HEX,Std-1,26.18,250.00000,pput
+A08,HEX,Std-1,26.14,250.00000,pput
+A09,HEX,Std-1,25.87,250.00000,pput
+A10,HEX,Std-1,25.88,250.00000,pput
+A12,HEX,NTC,,,pput
+B01,HEX,Std-2,27.96,100.00000,pput
+B02,HEX,Std-2,27.68,100.00000,pput
+B03,HEX,Std-2,27.93,100.00000,pput
+B04,HEX,Std-2,27.73,100.00000,pput
+B05,HEX,Std-2,27.67,100.00000,pput
+B06,HEX,Std-2,28.01,100.00000,pput
+B07,HEX,Std-2,28.03,100.00000,pput
+B08,HEX,Std-2,28.10,100.00000,pput
+B09,HEX,Std-2,27.91,100.00000,pput
+B10,HEX,Std-2,27.70,100.00000,pput
+B12,HEX,NTC,39.18,,pput
+C01,HEX,Std-3,28.71,50.00000,pput
+C02,HEX,Std-3,28.55,50.00000,pput
+C03,HEX,Std-3,28.85,50.00000,pput
+C04,HEX,Std-3,28.81,50.00000,pput
+C05,HEX,Std-3,28.82,50.00000,pput
+C06,HEX,Std-3,29.08,50.00000,pput
+C07,HEX,Std-3,29.15,50.00000,pput
+C08,HEX,Std-3,29.10,50.00000,pput
+C09,HEX,Std-3,28.96,50.00000,pput
+C10,HEX,Std-3,29.30,50.00000,pput
+C12,HEX,Pos Ctrl,17.54,1598600.68609,pput
+D01,HEX,Std-4,27.93,250.00000,pput
+D02,HEX,Std-4,28.36,250.00000,pput
+D03,HEX,Std-4,28.42,250.00000,pput
+D04,HEX,Std-4,28.28,250.00000,pput
+D05,HEX,Std-4,28.36,250.00000,pput
+D06,HEX,Std-4,28.09,250.00000,pput
+D07,HEX,Std-4,28.27,250.00000,pput
+D08,HEX,Std-4,28.16,250.00000,pput
+D09,HEX,Std-4,27.67,250.00000,pput
+D10,HEX,Std-4,28.20,250.00000,pput
+D12,HEX,Pos Ctrl,17.70,1381438.75219,pput
+E01,HEX,Std-5,27.98,100.00000,pput
+E02,HEX,Std-5,28.14,100.00000,pput
+E03,HEX,Std-5,28.03,100.00000,pput
+E04,HEX,Std-5,27.96,100.00000,pput
+E05,HEX,Std-5,27.72,100.00000,pput
+E06,HEX,Std-5,28.08,100.00000,pput
+E07,HEX,Std-5,28.00,100.00000,pput
+E08,HEX,Std-5,27.82,100.00000,pput
+E09,HEX,Std-5,28.26,100.00000,pput
+E10,HEX,Std-5,27.85,100.00000,pput
+F01,HEX,Std-6,28.64,50.00000,pput
+F02,HEX,Std-6,29.05,50.00000,pput
+F03,HEX,Std-6,28.71,50.00000,pput
+F04,HEX,Std-6,28.72,50.00000,pput
+F05,HEX,Std-6,28.78,50.00000,pput
+F06,HEX,Std-6,28.98,50.00000,pput
+F07,HEX,Std-6,29.02,50.00000,pput
+F08,HEX,Std-6,28.90,50.00000,pput
+F09,HEX,Std-6,28.96,50.00000,pput
+F10,HEX,Std-6,28.98,50.00000,pput
+F12,HEX,NTC,32.77,,pput
+G12,HEX,NTC,39.63,,pput
+H12,HEX,NTC,,,pput
+A01,Texas Red,Std-1,,250.00000,sphingo
+A02,Texas Red,Std-1,,250.00000,sphingo
+A03,Texas Red,Std-1,,250.00000,sphingo
+A04,Texas Red,Std-1,,250.00000,sphingo
+A05,Texas Red,Std-1,,250.00000,sphingo
+A06,Texas Red,Std-1,,250.00000,sphingo
+A07,Texas Red,Std-1,,250.00000,sphingo
+A08,Texas Red,Std-1,,250.00000,sphingo
+A09,Texas Red,Std-1,,250.00000,sphingo
+A10,Texas Red,Std-1,,250.00000,sphingo
+A11,Texas Red,Std-9,28.07,50.00000,sphingo
+A12,Texas Red,NTC,5.21,,sphingo
+B01,Texas Red,Std-2,12.60,100.00000,sphingo
+B02,Texas Red,Std-2,27.34,100.00000,sphingo
+B03,Texas Red,Std-2,27.62,100.00000,sphingo
+B04,Texas Red,Std-2,27.92,100.00000,sphingo
+B05,Texas Red,Std-2,25.38,100.00000,sphingo
+B06,Texas Red,Std-2,27.83,100.00000,sphingo
+B07,Texas Red,Std-2,27.80,100.00000,sphingo
+B08,Texas Red,Std-2,28.20,100.00000,sphingo
+B09,Texas Red,Std-2,28.01,100.00000,sphingo
+B10,Texas Red,Std-2,27.35,100.00000,sphingo
+B11,Texas Red,Std-9,28.76,50.00000,sphingo
+B12,Texas Red,NTC,4.95,,sphingo
+C01,Texas Red,Std-3,27.88,50.00000,sphingo
+C02,Texas Red,Std-3,28.91,50.00000,sphingo
+C03,Texas Red,Std-3,28.78,50.00000,sphingo
+C04,Texas Red,Std-3,28.48,50.00000,sphingo
+C05,Texas Red,Std-3,28.21,50.00000,sphingo
+C06,Texas Red,Std-3,27.82,50.00000,sphingo
+C07,Texas Red,Std-3,27.79,50.00000,sphingo
+C08,Texas Red,Std-3,28.62,50.00000,sphingo
+C09,Texas Red,Std-3,27.65,50.00000,sphingo
+C10,Texas Red,Std-3,28.51,50.00000,sphingo
+C11,Texas Red,Std-9,29.22,50.00000,sphingo
+C12,Texas Red,Pos Ctrl,17.29,350223.69560,sphingo
+D11,Texas Red,Std-9,29.18,50.00000,sphingo
+E11,Texas Red,Std-9,29.11,50.00000,sphingo
+E12,Texas Red,Pos Ctrl,17.52,290986.45165,sphingo
+F11,Texas Red,Std-9,29.31,50.00000,sphingo
+F12,Texas Red,NTC,,,sphingo
+G01,Texas Red,Std-7,26.76,250.00000,sphingo
+G02,Texas Red,Std-7,27.30,250.00000,sphingo
+G03,Texas Red,Std-7,27.22,250.00000,sphingo
+G04,Texas Red,Std-7,26.79,250.00000,sphingo
+G05,Texas Red,Std-7,26.49,250.00000,sphingo
+G06,Texas Red,Std-7,26.22,250.00000,sphingo
+G07,Texas Red,Std-7,26.88,250.00000,sphingo
+G08,Texas Red,Std-7,26.58,250.00000,sphingo
+G09,Texas Red,Std-7,26.04,250.00000,sphingo
+G10,Texas Red,Std-7,26.57,250.00000,sphingo
+G11,Texas Red,Std-9,29.07,50.00000,sphingo
+G12,Texas Red,NTC,,,sphingo
+H01,Texas Red,Std-8,27.07,100.00000,sphingo
+H02,Texas Red,Std-8,27.99,100.00000,sphingo
+H03,Texas Red,Std-8,28.28,100.00000,sphingo
+H04,Texas Red,Std-8,28.13,100.00000,sphingo
+H05,Texas Red,Std-8,28.53,100.00000,sphingo
+H06,Texas Red,Std-8,27.49,100.00000,sphingo
+H07,Texas Red,Std-8,27.68,100.00000,sphingo
+H08,Texas Red,Std-8,27.83,100.00000,sphingo
+H09,Texas Red,Std-8,28.12,100.00000,sphingo
+H10,Texas Red,Std-8,28.25,100.00000,sphingo
+H11,Texas Red,Std-9,29.07,50.00000,sphingo
+H12,Texas Red,NTC,,,

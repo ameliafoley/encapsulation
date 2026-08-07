@@ -1,0 +1,170 @@
+Analysis started: Thu Jul 30 15:40:45 2026
+
+
+WARNING: 27 data points excluded without a valid starting quantity (SQ)!
+Here is a sample of the data being excluded:
+
+"Well"	"Fluor"	"Sample"	"Cq"	"SQ"	"Target"
+"A10"	"Cy5"	"NTC"	NA	NA	"afaec"
+"C10"	"FAM"	"NTC"	NA	NA	"npenta"
+"B10"	"Texas Red"	"NTC"	NA	NA	"sphingo"
+"A12"	"Cy5"	"NTC"	NA	NA	"presin"
+"B12"	"Cy5"	"NTC"	NA	NA	"presin"
+"C12"	"Cy5"	"Pos Ctrl"	17.52	NA	"presin"
+
+
+Potential outliers have been detected. Please review the data exported as
+Potential-Outliers.csv, and determine if any data points need to be excluded
+or adjusted due to false positives or poorly normalized baselines.
+
+
+These standards not included in afaec standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+These standards not included in npenta standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+These standards not included in sphingo standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+These standards not included in presin standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+These standards not included in  standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+These standards not included in pput standard curve regression for copy estimate calculations, because they detected below 50%: NA
+
+
+Data Summary:
+"Standards"	"Target"	"Reps"	"Detects"	"Cq.mean"	"Cq.sd"	"Copy.CV"	"Cq.CV"	"Rate"
+5e+08	"afaec"	5	5	6.928	0.173839005979671	0.141180879778157	0.120934721914984	1
+5e+07	"afaec"	5	5	13.324	0.103344085462111	0.0820904612101629	0.0717246508355512	1
+5e+06	"afaec"	5	5	16.366	0.204279220676015	0.166461566454749	0.14230826240922	1
+5e+05	"afaec"	5	5	20.864	0.146731046476198	0.106488624468256	0.101969795016538	1
+50000	"afaec"	5	5	24.536	0.339234432214656	0.228924903388158	0.238427387306737	1
+5000	"afaec"	5	5	28.342	0.403695429748716	0.297018322097298	0.285388200855573	1
+500	"afaec"	5	5	32.098	0.134424700111252	0.0984519362012883	0.0933787018811065	1
+50	"afaec"	11	8	31.305	4.21982396383004	0.655653349808912	72.0670226772826	0.727272727272727
+250	"afaec"	10	10	26.714	0.207696359567946	0.152410041673866	0.144713315471183	1
+100	"afaec"	10	10	27.977	0.220909735211265	0.182542022630095	0.154024914645621	1
+5e+08	"npenta"	5	5	3.634	0.221314256205966	0.157836546586085	0.154310287453664	1
+5e+07	"npenta"	5	5	9.158	1.00532084430793	0.710367711757785	0.790643033129375	1
+5e+06	"npenta"	5	5	15.736	0.57273903306829	0.32980167480657	0.413160182656647	1
+5e+05	"npenta"	5	5	20.514	0.458508451394301	0.371747586638857	0.326010548894946	1
+50000	"npenta"	5	5	23.89	0.818871174239269	0.593683189391689	0.616535722041313	1
+5000	"npenta"	5	5	27.154	0.506685306674665	0.367758609933912	0.362321085656178	1
+500	"npenta"	5	5	29.92	0.476655011512519	0.35045407096841	0.339616830172513	1
+50	"npenta"	23	22	30.2336363636364	2.65079600884706	0.544246023635756	5.315427816286	0.956521739130435
+250	"npenta"	20	10	26.783	0.229349321148137	0.162877777689301	0.159982548462128	0.5
+100	"npenta"	20	20	28.0975	0.328679575206454	0.240714296681875	0.230811742229155	1
+5e+08	"sphingo"	5	5	5.948	0.755956347946097	0.534745316959129	0.562100906735487	1
+5e+07	"sphingo"	5	4	14.4125	0.90845564925684	0.567570791392635	0.697590893983158	0.8
+5e+06	"sphingo"	5	5	15.82	6.22974718588162	2.23597026716476	11193.9717353467	1
+5e+05	"sphingo"	5	5	21.244	0.261782352346372	0.224081333663665	0.182957606561002	1
+50000	"sphingo"	5	5	25.406	0.417648177297592	0.30817289634762	0.295664138366944	1
+5000	"sphingo"	5	5	27.88	0.520096144957833	0.38703892120873	0.372539560200038	1
+500	"sphingo"	5	5	33.31	0.67612868597627	0.596870159763998	0.495607805423738	1
+50	"sphingo"	23	21	29.7133333333333	2.94680731187727	0.669978264555179	7.99070112153581	0.91304347826087
+250	"sphingo"	20	10	26.685	0.396323380867471	0.333925446976968	0.279975660751031	0.5
+100	"sphingo"	20	20	26.971	3.4463938437613	4.47181020511013	17.3164517690024	1
+350223.6956	"sphingo"	1	1	17.29	NA	NA	NA	1
+290986.45165	"sphingo"	1	1	17.52	NA	NA	NA	1
+250	"presin"	20	20	27.1715	1.41915198918969	0.915672022966976	1.27737876976796	1
+100	"presin"	20	20	27.9525	0.331501766288856	0.299023014716736	0.232846153288889	1
+50	"presin"	21	21	28.9628571428571	0.226277326684378	0.201847861470797	0.157813035560245	1
+50	""	1	1	29.44	NA	NA	NA	1
+12594457.53542	""	1	1	15.34	NA	NA	NA	1
+639898.49079	""	1	1	18.41	NA	NA	NA	1
+250	"avenet"	10	10	26.386	0.220967569264512	0.832087551440147	0.154065713049661	1
+100	"avenet"	10	10	25.691	0.182905561545964	0.831750985773184	0.127291629132324	1
+50	"avenet"	10	10	26.758	0.156758838134675	0.926938480025416	0.108978446913195	1
+250	"pput"	20	20	27.132	1.09684523688814	0.803489881757772	0.884591793077708	1
+100	"pput"	20	20	27.928	0.166373074744684	0.153500748310012	0.11570550392854	1
+50	"pput"	20	20	28.9035	0.188854580647595	0.172775650544038	0.131466815587262	1
+1598600.68609	"pput"	1	1	17.54	NA	NA	NA	1
+1381438.75219	"pput"	1	1	17.7	NA	NA	NA	1
+
+
+For afaec, the lowest standard with 95% or greater detection is: 100 copies/reaction.
+
+
+
+For npenta, the lowest standard with 95% or greater detection is: 50 copies/reaction.
+
+WARNING: For npenta, 250 copies/reaction standard detected at lower rate than 50 copies/reaction standard.
+Please retest.
+
+
+
+
+For sphingo, the lowest standard with 95% or greater detection is: 100 copies/reaction.
+
+WARNING: For sphingo, 5e+07 copies/reaction standard detected at lower rate than 100 copies/reaction standard.
+Please retest.
+
+
+
+
+For presin, the lowest standard with 95% or greater detection is: 50 copies/reaction.
+
+WARNING: LoD cannot be determined for presin, because it is lower than the lowest standard you tested.
+Report as <50 copies/reaction, or retest with lower concentrations.
+
+
+
+
+For , the lowest standard with 95% or greater detection is: 50 copies/reaction.
+
+WARNING: LoD cannot be determined for , because it is lower than the lowest standard you tested.
+Report as <50 copies/reaction, or retest with lower concentrations.
+
+
+
+
+For avenet, the lowest standard with 95% or greater detection is: 50 copies/reaction.
+
+WARNING: LoD cannot be determined for avenet, because it is lower than the lowest standard you tested.
+Report as <50 copies/reaction, or retest with lower concentrations.
+
+
+
+
+For pput, the lowest standard with 95% or greater detection is: 50 copies/reaction.
+
+WARNING: LoD cannot be determined for pput, because it is lower than the lowest standard you tested.
+Report as <50 copies/reaction, or retest with lower concentrations.
+
+
+WARNING: For afaec, only 1 standard detected in the informative range (not 0% and not 100%).  Therefore, the LoD model results will be less reliable.
+
+
+WARNING: For presin, all standards detected fully or failed fully.  Therefore, the LoD model will not converge.
+
+
+WARNING: For , all standards detected fully or failed fully.  Therefore, the LoD model will not converge.
+
+
+WARNING: For avenet, all standards detected fully or failed fully.  Therefore, the LoD model will not converge.
+
+
+WARNING: For pput, all standards detected fully or failed fully.  Therefore, the LoD model will not converge.
+
+
+Assay summary:
+
+R.squared: The R-squared value of linear regression of all standards Cq-values vs log10 of the starting quantities.
+Slope: The slope of the linear regression.
+Intercept: The y-intercept of the linear regression.
+
+Low.95: The lowest standard with at least 95% positive detection.
+LOD: The 95% limit of detection as determined by probit modeling.
+LOQ: The limit of quantification as determined by decay modeling, using the user-selected CV threshold of: 0.35
+
+rep2.LOD: The effective limit of detection if analyzing in 2 replicates.
+rep3.LOD: The effective limit of detection if analyzing in 3 replicates.
+rep4.LOD: The effective limit of detection if analyzing in 4 replicates.
+rep5.LOD: The effective limit of detection if analyzing in 5 replicates.
+rep8.LOD: The effective limit of detection if analyzing in 8 replicates.
+
+
