@@ -296,7 +296,8 @@ pjd <- position_jitterdodge(jitter.width = .3, jitter.height = 0, dodge.width = 
 my_labels <- list(
   treatment = c(
     "free" = "Free",
-    "encapsulated" = "Encapsulated"
+    "encapsulated" = "Encapsulated", 
+    "supernatant" = "Supernatant"
   ),
   consortia = c(
     "k" = "K-Strat",
@@ -304,9 +305,10 @@ my_labels <- list(
     "r" = "R-Strat"
   ), 
   sample.type = c(
-    "planktonic" = "Planktonic", 
-    "capsule" = "Capsule", 
-    "supernatant" = "Supernatant"
+    "planktonic" = "Free", 
+    "supernatant" = "Extracapsular",
+    "capsule" = "Capsule"
+    
   )
 )
 strain_labels <- c(
@@ -361,15 +363,25 @@ LOD_line <- 50*150/1
 
 qpcr_plot <- qpcr_avg_ind %>%
   mutate(
-    below_lod = mean_sq < LOD,
+    below_lod = mean_sq < LOD | is.na(mean_sq),
     
     gene_copies_plot =
       if_else(
-        mean_sq < LOD,
+        below_lod,
         (50*150/1)/2, #because for all samples where this is a concern, they are supernatant, and this was the calculation
         gene_copies_per_mL
       )
   )
+
+qpcr_plot$sample.type <- factor(
+  qpcr_plot$sample.type,
+  levels = c("planktonic", "supernatant", "capsule")
+)
+
+qpcr_plot$strain <- factor(
+  qpcr_plot$strain,
+  levels = c("a.faecalis", "n.penta", "sphingo.sp", "p.putida", "p.resin", "a.venet")
+)
 
 qpcr_summary_plot <- qpcr_plot %>%
   group_by(
@@ -407,7 +419,7 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = strain, shape = str
   stat_summary(
     fun.data = mean_se,
     geom = "errorbar",
-    width = 0.2,
+    width = 3,
     position = pd
   ) +
   scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
@@ -538,7 +550,8 @@ pjd <- position_jitterdodge(jitter.width = .3, jitter.height = 0, dodge.width = 
 my_labels <- list(
   treatment = c(
     "free" = "Free",
-    "encapsulated" = "Encapsulated"
+    "encapsulated" = "Encapsulated", 
+    "supernatant" = "Supernatant"
   ),
   consortia = c(
     "k" = "K-Strat",
@@ -607,7 +620,7 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain, shape = strain)) 
     ),
     shape = "none"
   )
-##trying faceting by strain instead for easier comparisons
+##trying faceting by STRAIN instead for easier comparisons
 treatment_colors <- c(
   # Free / planktonic
   "free"        = "#D85A44FF",
@@ -615,26 +628,44 @@ treatment_colors <- c(
   "f"  = "#D85A44FF",
   
   # Aqueous / supernatant
-  "aqueous"     = "#98A54FFF",
-  "super"       = "#98A54FFF",
-  "supernatant" = "#98A54FFF",
-  "c" = "#98A54FFF",
+  "aqueous"     = "#2E92A2FF",
+  "super"       = "#2E92A2FF",
+  "supernatant" = "#2E92A2FF",
+  "c" = "#2E92A2FF",
   
   # Capsule
-  #"capsule"     = "#2E92A2FF",
-  "cap"         = "#2E92A2FF",
-  "cc"         = "#2E92A2FF",
+  "capsule"     = "#98A54FFF",
+  "cap"         = "#98A54FFF",
+  "cc"         = "#98A54FFF",
   
   # Encapsulated combined
-  "capsule"      = "#61BEA4FF", #for this script in particular, I used capsule to represent the combined encapsulated reactor
+  #"capsule"      = "#61BEA4FF", #for this script in particular, I used capsule to represent the combined encapsulated reactor
   "encapsulated"= "#61BEA4FF"   # if this level exists anywhere
   
 )
-ggplot(wide, aes(x = day, y = gc_total_per_mL, color = treatment, shape = strain)) +
+treatment_linetypes <- c(
+  "free"        = "solid",
+  "planktonic"  = "solid",
+  "f"  = "solid",
+  
+  "aqueous"     = "dashed",
+  "super"       = "dashed",
+  "supernatant" = "dashed",
+  "c" = "dashed",
+  
+  "capsule"     = "dotted",
+  "cap"         = "dotted",
+  "cc"         = "dotted",
+  
+  #"capsule"      = "dotdash",
+  "encapsulated"= "dotdash"
+)
+##FACET BY STRAIN
+ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = sample.type, linetype = sample.type)) +
   stat_summary(
     fun = mean,
     geom = "line",
-    aes(group = treatment),
+    aes(group = sample.type),
     position = pd
   ) +
   stat_summary(
@@ -646,20 +677,19 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = treatment, shape = strain
   stat_summary(
     fun.data = mean_se,
     geom = "errorbar",
-    width = 0.2,
-    position = pd
+    width = 4,
+    position = pd, 
+    linetype = "solid"
   ) +
   scale_y_log10(breaks = trans_breaks("log10",function(x) 10^x), 
                 labels = trans_format( "log10", math_format(10^.x) )) +  
   facet_grid(consortia ~ strain, labeller = labeller(
-    treatment = as_labeller(my_labels$treatment), 
+    strain = as_labeller(strain_labels, label_parsed),
     consortia = as_labeller(my_labels$consortia)
   )) +
   labs(
-    title = "Mass Balance - Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)",
-    color = "Strain"
+    x = "Time (days)"
   ) +
   theme_pubr()+
   theme(
@@ -667,20 +697,53 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = treatment, shape = strain
     #strip.background = element_rect(fill = "grey90", color = NA)
   )+ scale_x_continuous(breaks = c(0, 7, 14, 21, 42))+
   scale_color_manual(values = treatment_colors, 
-                     name = "Strain",
-                     labels = function(x) parse(text = strain_labels[x]))+
-  scale_shape_manual(
-    name = "Strain",
-    values = c(
-      "a.faecalis" = 16,
-      "a.venet"    = 17,
-      "n.penta"    = 15,
-      "p.putida"   = 3,
-      "p.resin"    = 4,
-      "sphingo.sp" = 8
+                     name = "Sample", 
+                     labels = c(planktonic = "Free", 
+                                supernatant = "Extracapsular", 
+                                capsule = "Capsule"), 
+                     limits = c("planktonic", "supernatant", "capsule"))+
+  scale_linetype_manual(values = treatment_linetypes, 
+                        name = "Sample", 
+                        labels = c(planktonic = "Free", 
+                                   supernatant = "Extracapsular", 
+                                   capsule = "Capsule"), 
+                        limits = c("planktonic", "supernatant", "capsule"))+
+  guides(
+    colour = guide_legend(
+      override.aes = list(
+        linewidth = 1,
+        linetype = c("solid", "dashed", "dotted"),
+        shape = 16
+      )
     ),
-    labels = function(x) parse(text = strain_labels[x])
+    linetype = "none"
+  )+
+  theme(
+    legend.position = "top",
+    legend.key.width = unit(2, "cm"),
+    legend.key.height = unit(0.5, "cm"),
+    legend.spacing.x = unit(0.4, "cm")
+  )+
+  geom_hline(
+    yintercept = LOD_line,
+    linetype = "dashed",
+    colour = "grey40"
   )
+                        
+
+
+  # scale_shape_manual(
+  #   name = "Strain",
+  #   values = c(
+  #     "a.faecalis" = 16,
+  #     "a.venet"    = 17,
+  #     "n.penta"    = 15,
+  #     "p.putida"   = 3,
+  #     "p.resin"    = 4,
+  #     "sphingo.sp" = 8
+  #   ),
+  #   labels = function(x) parse(text = strain_labels[x])
+  # )
 
 ##STATS
 ###############################################################

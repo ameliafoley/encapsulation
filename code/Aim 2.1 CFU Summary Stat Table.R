@@ -155,52 +155,104 @@ addWorksheet(wb, "Component_ANOVA")
 writeData(wb, "Component_ANOVA", anova_component)
 
 ###############################################################
-# Sheet 5 - Total reactor Tukey letters
+# Sheet 5 - Total reactor Tukey comparisons
 ###############################################################
 
-letters_total <-
+tukey_total <-
   bind_rows(
-    letters_putida %>% mutate(strain = "p.putida"),
-    letters_avenet %>% mutate(strain = "a.venet"),
-    letters_naroma %>% mutate(strain = "n.aroma"),
-    letters_npenta %>% mutate(strain = "n.penta")
+    
+    emmeans(stats_putida$fit, ~ rx * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "p.putida"),
+    
+    emmeans(stats_avenet$fit, ~ rx * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "a.venet"),
+    
+    emmeans(stats_naroma$fit, ~ rx * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "n.aroma"),
+    
+    emmeans(stats_npenta$fit, ~ rx * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "n.penta")
+    
+  ) %>%
+  mutate(
+    sig = case_when(
+      adj.p.value < 0.001 ~ "***",
+      adj.p.value < 0.01  ~ "**",
+      adj.p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    )
   ) %>%
   select(
     strain,
-    rx,
-    day,
-    emmean,
-    SE,
+    contrast,
+    estimate,
+    std.error,
     df,
-    letters
+    statistic,
+    adj.p.value,
+    sig
   )
 
 addWorksheet(wb, "Total_Tukey")
-writeData(wb, "Total_Tukey", letters_total)
+writeData(wb, "Total_Tukey", tukey_total)
 
 ###############################################################
-# Sheet 6 - Component Tukey letters
+# Sheet 6 - Component Tukey comparisons
 ###############################################################
 
-letters_component <-
+tukey_component <-
   bind_rows(
-    letters_comp_putida %>% mutate(strain = "p.putida"),
-    letters_comp_avenet %>% mutate(strain = "a.venet"),
-    letters_comp_naroma %>% mutate(strain = "n.aroma"),
-    letters_comp_npenta %>% mutate(strain = "n.penta")
+    
+    emmeans(stats_comp_putida$fit, ~ sample * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "p.putida"),
+    
+    emmeans(stats_comp_avenet$fit, ~ sample * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "a.venet"),
+    
+    emmeans(stats_comp_naroma$fit, ~ sample * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "n.aroma"),
+    
+    emmeans(stats_comp_npenta$fit, ~ sample * day) %>%
+      pairs(adjust = "tukey") %>%
+      broom::tidy() %>%
+      mutate(strain = "n.penta")
+    
+  ) %>%
+  mutate(
+    sig = case_when(
+      adj.p.value < 0.001 ~ "***",
+      adj.p.value < 0.01  ~ "**",
+      adj.p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    )
   ) %>%
   select(
     strain,
-    sample,
-    day,
-    emmean,
-    SE,
+    contrast,
+    estimate,
+    std.error,
     df,
-    letters
+    statistic,
+    adj.p.value,
+    sig
   )
 
 addWorksheet(wb, "Component_Tukey")
-writeData(wb, "Component_Tukey", letters_component)
+writeData(wb, "Component_Tukey", tukey_component)
 
 global_total_table <-
   broom::tidy(global_total_anova) %>%

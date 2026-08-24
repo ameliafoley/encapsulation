@@ -130,6 +130,7 @@ community_fit <- aov(
   log_gc ~
     consortia *
     treatment *
+    sample.type *
     day,
   data = qpcr_stats
 )
@@ -189,6 +190,8 @@ analyze_consortium <- function(dat){
         
         treatment *
         
+        sample.type*
+        
         day,
       
       data = dat
@@ -205,7 +208,7 @@ analyze_consortium <- function(dat){
       
       fit,
       
-      ~ treatment |
+      ~ sample.type |
         
         strain * day
       
@@ -233,7 +236,7 @@ analyze_consortium <- function(dat){
       
       ~ day |
         
-        strain * treatment
+        strain * sample.type
       
     )
   
@@ -318,17 +321,17 @@ anova_by_consortium <-
     
   ) %>%
   
-  filter(
-    term %in% c(
-      "treatment",
-      "day",
-      "treatment:day", 
-      "strain",
-      "strain:day", 
-      "strain:treatment", 
-      "strain:treatment:day"
-    )
-  ) %>%
+  # filter(
+  #   term %in% c(
+  #     "treatment",
+  #     "day",
+  #     "treatment:day", 
+  #     "strain",
+  #     "strain:day", 
+  #     "strain:treatment", 
+  #     "strain:treatment:day"
+  #   )
+  # ) %>%
   
   mutate(
     
@@ -469,7 +472,7 @@ day_comparisons <-
   select(
     Consortium,
     strain,
-    treatment,
+    sample.type,
     contrast,
     estimate,
     SE,
@@ -481,7 +484,7 @@ day_comparisons <-
   arrange(
     Consortium,
     strain,
-    treatment
+    sample.type
   )
 
 addWorksheet(
@@ -522,7 +525,7 @@ analyze_strain <- function(strain_name){
         
         consortia *
         
-        treatment *
+        sample.type *
         
         day,
       
@@ -540,7 +543,7 @@ analyze_strain <- function(strain_name){
       
       fit,
       
-      ~ treatment |
+      ~ sample.type |
         
         consortia * day
       
@@ -568,7 +571,7 @@ analyze_strain <- function(strain_name){
       
       ~ consortia |
         
-        treatment * day
+        sample.type * day
       
     )
   
@@ -595,7 +598,7 @@ analyze_strain <- function(strain_name){
       
       ~ day |
         
-        consortia * treatment
+        consortia * sample.type
       
     )
   
@@ -623,66 +626,7 @@ analyze_strain <- function(strain_name){
   
 }
 
-anova_shared_strains <-
-  
-  bind_rows(
-    
-    broom::tidy(stats_putida$fit) %>%
-      mutate(Strain = "P. putida"),
-    
-    broom::tidy(stats_npenta$fit) %>%
-      mutate(Strain = "N. pentaromativorans"),
-    
-    broom::tidy(stats_sphingo$fit) %>%
-      mutate(Strain = "Sphingomonas sp."),
-    
-    broom::tidy(stats_presin$fit) %>%
-      mutate(Strain = "P. resinovorans")
-    
-  ) %>%
-  
-  filter(
-    
-    term %in% c(
-      
-      "consortia",
-      
-      "treatment",
-      
-      "day",
-      
-      "consortia:treatment",
-      
-      "consortia:day",
-      
-      "treatment:day",
-      
-      "consortia:treatment:day"
-      
-    )
-    
-  ) %>%
-  
-  mutate(
-    
-    sig = case_when(
-      
-      p.value < 0.001 ~ "***",
-      
-      p.value < 0.01 ~ "**",
-      
-      p.value < 0.05 ~ "*",
-      
-      TRUE ~ "ns"
-      
-    )
-    
-  ) %>%
-  
-  arrange(
-    Strain,
-    term
-  )
+
 ###############################################################
 # Shared strains
 ###############################################################
@@ -717,6 +661,66 @@ stats_presin <-
     
     "p.resin"
     
+  )
+anova_shared_strains <-
+  
+  bind_rows(
+    
+    broom::tidy(stats_putida$fit) %>%
+      mutate(Strain = "P. putida"),
+    
+    broom::tidy(stats_npenta$fit) %>%
+      mutate(Strain = "N. pentaromativorans"),
+    
+    broom::tidy(stats_sphingo$fit) %>%
+      mutate(Strain = "Sphingomonas sp."),
+    
+    broom::tidy(stats_presin$fit) %>%
+      mutate(Strain = "P. resinovorans")
+    
+  ) %>%
+  
+  # filter(
+  #   
+  #   term %in% c(
+  #     
+  #     "consortia",
+  #     
+  #     "sample.type",
+  #     
+  #     "day",
+  #     
+  #     "consortia:treatment",
+  #     
+  #     "consortia:day",
+  #     
+  #     "treatment:day",
+  #     
+  #     "consortia:treatment:day"
+  #     
+  #   )
+  #   
+  # ) %>%
+  
+  mutate(
+    
+    sig = case_when(
+      
+      p.value < 0.001 ~ "***",
+      
+      p.value < 0.01 ~ "**",
+      
+      p.value < 0.05 ~ "*",
+      
+      TRUE ~ "ns"
+      
+    )
+    
+  ) %>%
+  
+  arrange(
+    Strain,
+    term
   )
 
 addWorksheet(
@@ -769,7 +773,7 @@ consortium_comparisons <-
   select(
     day,
     Strain,
-    treatment,
+    sample.type,
     contrast,
     estimate,
     SE,
@@ -782,7 +786,7 @@ consortium_comparisons <-
     
     Strain,
     
-    treatment,
+    sample.type,
     
     day
     

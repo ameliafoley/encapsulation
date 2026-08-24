@@ -1,0 +1,479 @@
+---
+title: "Preliminary PAH Profiles by Sediment Location"
+output: html_document
+date: "2026-08-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(stringr)
+
+# ---------------------------------------------------------
+# 1. Import sample code
+# ---------------------------------------------------------
+
+sample_code <- read_excel(
+  "Aim 2.3 Sediment Sample Code.xlsx"
+)
+
+# Parse abbreviation
+sample_code <- sample_code %>%
+  separate_wider_delim(
+    Abbreviation,
+    delim = "-",
+    names = c(
+      "Location_Code",
+      "Treatment_Code",
+      "Replicate",
+      "Timepoint",
+      "Dissolved_Code"
+    ),
+    too_few = "align_start"
+  ) %>%
+  mutate(
+    Sediment_Location = case_when(
+      Location_Code == "M" ~ "Mains",
+      Location_Code == "S" ~ "Mains Sterile",
+      Location_Code == "P" ~ "Pescara",
+      Location_Code == "R" ~ "Republic",
+      TRUE ~ NA_character_
+    ),
+
+    Treatment = case_when(
+      Treatment_Code == "F" ~ "Free",
+      Treatment_Code == "N" ~ "None",
+      Treatment_Code == "S" ~ "Abiotic Capsule",
+      Treatment_Code == "E" ~ "Encapsulated",
+      TRUE ~ NA_character_
+    ),
+
+    Timepoint = as.numeric(Timepoint),
+
+    Sample_Type = case_when(
+      Dissolved_Code == "D" ~ "Dissolved Capsule",
+      TRUE ~ "Sediment Slurry"
+    )
+  ) %>%
+  select(
+    -Location_Code,
+    -Treatment_Code,
+    -Dissolved_Code
+  )
+
+
+# ---------------------------------------------------------
+# 2. Import PAH results
+# ---------------------------------------------------------
+
+pah_results <- read_excel(
+  "Sediment Concentration report.xlsx",
+  sheet = "Concentration report"
+)
+
+
+# ---------------------------------------------------------
+# 3. Make join variables the same type
+# ---------------------------------------------------------
+
+sample_code <- sample_code %>%
+  mutate(
+    `PAH Extract No.` = as.character(`PAH Extract No.`)
+  )
+
+pah_results <- pah_results %>%
+  mutate(
+    Replicate = as.character(Replicate)
+  )
+
+
+# ---------------------------------------------------------
+# 4. Join PAH results with sample information
+# ---------------------------------------------------------
+
+pah_joined <- pah_results %>%
+  left_join(
+    sample_code,
+    by = c("Replicate" = "PAH Extract No.")
+  )
+
+
+# ---------------------------------------------------------
+# 5. Rename variables
+# ---------------------------------------------------------
+
+pah_joined <- pah_joined %>%
+  rename(
+    pah_extract_no = Replicate,
+    pah_sample_type = `Sample Type`,
+    molecule_name = `Molecule Name`,
+    concentration = `Calculated Concentration`,
+    batch_figures_of_merit = `Batch Figures Of Merit`,
+    total_area = `Total Area`,
+    molecule_retention_time = `Molecule Retention Time`,
+    sample = Sample,
+    replicate = Replicate.y,
+    timepoint = Timepoint,
+    sediment_location = Sediment_Location,
+    treatment = Treatment,
+    sample_type = Sample_Type
+  )
+
+
+# ---------------------------------------------------------
+# 6. Remove d10/d12 standards and unmatched samples
+# ---------------------------------------------------------
+
+pah_filtered <- pah_joined %>%
+  filter(
+    !is.na(sample_type),
+    !str_detect(
+      molecule_name,
+      regex("d10|d12", ignore_case = TRUE)
+    )
+  )
+
+
+# ---------------------------------------------------------
+# 7. Set factor order
+# ---------------------------------------------------------
+
+pah_filtered <- pah_filtered %>%
+  mutate(
+    treatment = factor(
+      treatment,
+      levels = c(
+        "None",
+        "Free",
+        "Abiotic Capsule",
+        "Encapsulated"
+      )
+    ),
+
+    timepoint = factor(
+      timepoint,
+      levels = c(0, 21, 42)
+    ),
+
+    sediment_location = factor(
+      sediment_location,
+      levels = c(
+        "Mains",
+        "Mains Sterile",
+        "Pescara",
+        "Republic"
+      )
+    )
+  )
+```
+
+# Mains
+
+## Sediment Slurry
+
+```{r mains-sediment, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Mains",
+    sample_type == "Sediment Slurry"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(
+    outlier.shape = NA,
+    position = position_dodge(width = 0.75)
+  ) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6,
+    size = 1.5
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Mains — Sediment Slurry"
+  )
+```
+
+## Dissolved Capsule
+
+```{r mains-capsule, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Mains",
+    sample_type == "Dissolved Capsule"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Mains — Dissolved Capsule"
+  )
+```
+
+# Mains Sterile
+
+## Sediment Slurry
+
+```{r mains-sterile-sediment, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Mains Sterile",
+    sample_type == "Sediment Slurry"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Mains Sterile — Sediment Slurry"
+  )
+```
+
+## Dissolved Capsule
+
+```{r mains-sterile-capsule, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Mains Sterile",
+    sample_type == "Dissolved Capsule"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Mains Sterile — Dissolved Capsule"
+  )
+```
+
+# Pescara
+
+## Sediment Slurry
+
+```{r pescara-sediment, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Pescara",
+    sample_type == "Sediment Slurry"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Pescara — Sediment Slurry"
+  )
+```
+
+## Dissolved Capsule
+
+```{r pescara-capsule, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Pescara",
+    sample_type == "Dissolved Capsule"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Pescara — Dissolved Capsule"
+  )
+```
+
+# Republic
+
+## Sediment Slurry
+
+```{r republic-sediment, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Republic",
+    sample_type == "Sediment Slurry"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Republic — Sediment Slurry"
+  )
+```
+
+## Dissolved Capsule
+
+```{r republic-capsule, fig.width=12, fig.height=9}
+pah_filtered %>%
+  filter(
+    sediment_location == "Republic",
+    sample_type == "Dissolved Capsule"
+  ) %>%
+  ggplot(
+    aes(
+      x = timepoint,
+      y = concentration,
+      color = treatment
+    )
+  ) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.75
+    ),
+    alpha = 0.6
+  ) +
+  facet_wrap(
+    ~ molecule_name,
+    scales = "free_y",
+    ncol = 4
+  ) +
+  theme_classic() +
+  labs(
+    x = "Time (days)",
+    y = "PAH Concentration",
+    color = "Treatment",
+    title = "Republic — Dissolved Capsule"
+  )
+```
+

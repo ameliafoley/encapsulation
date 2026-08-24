@@ -1,5 +1,5 @@
 #load data. 
-consortia <- read_excel(here::here("data", "Exp 2.2 PAH Results updated.xlsx"))
+consortia <- read_excel(here::here("data", "Exp 2.2 PAH Results-updated-20260819.xlsx"))
 consortia <- consortia[ , -c(6,7)]
 consortia.code <- read_excel(here::here("data", "Exp 2.2 Sample Code updated.xlsx"))
 merged.consortia <- left_join(consortia, consortia.code, by = "sample.no")
@@ -479,8 +479,8 @@ plot_mass <- function(plot_data,
     na.rm = TRUE
   )
   
-  letter_offset <- 0.04 * y_max
-  star_offset   <- 0.08 * y_max
+  letter_offset <- 0.04 * y_max 
+  star_offset   <- 0.04 * y_max #was .08 when combined with letters
   
   ggplot() +
     
@@ -488,23 +488,23 @@ plot_mass <- function(plot_data,
   # Raw reactor values
   ###########################################################
   
-  geom_point(
-    
-    data = raw_data,
-    
-    aes(
-      x = day,
-      y = perc_remaining,
-      colour = treatment_combined
-    ),
-    
-    position = pd,
-    
-    alpha = 0.35,
-    
-    size = 2
-    
-  ) +
+  # geom_point(
+  #   
+  #   data = raw_data,
+  #   
+  #   aes(
+  #     x = day,
+  #     y = perc_remaining,
+  #     colour = treatment_combined
+  #   ),
+  #   
+  #   position = pd,
+  #   
+  #   alpha = 0.35,
+  #   
+  #   size = 2
+  #   
+  # ) +
     
     ###########################################################
   # Mean lines
@@ -571,7 +571,7 @@ plot_mass <- function(plot_data,
       
     ),
     
-    width = 0.15,
+    width = .5,
     
     position = pd
     
@@ -581,29 +581,29 @@ plot_mass <- function(plot_data,
   # Tukey letters
   ###########################################################
   
-  geom_text(
-    
-    data = plot_data,
-    
-    aes(
-      
-      x = day,
-      
-      y = mean_perc_remaining +
-        se_perc_remaining +
-        letter_offset,
-      
-      label = letters,
-      
-      group = treatment_combined
-      
-    ),
-    
-    position = pd,
-    
-    size = 3.5
-    
-  ) +
+  # geom_text(
+  #   
+  #   data = plot_data,
+  #   
+  #   aes(
+  #     
+  #     x = day,
+  #     
+  #     y = mean_perc_remaining +
+  #       se_perc_remaining +
+  #       letter_offset,
+  #     
+  #     label = letters,
+  #     
+  #     group = treatment_combined
+  #     
+  #   ),
+  #   
+  #   position = pd,
+  #   
+  #   size = 3.5
+  #   
+  # ) +
     
     ###########################################################
   # Dunnett stars
@@ -651,11 +651,11 @@ plot_mass <- function(plot_data,
         
         a = "Abiotic",
         
-        k = "K-strat",
+        k = "K-Strat",
         
         m = "Mixed",
         
-        r = "R-strat"
+        r = "R-Strat"
         
       )
       
@@ -675,10 +675,30 @@ plot_mass <- function(plot_data,
       )
     ) +
     scale_colour_manual(
-      values = treatment_colors
+      values = treatment_colors, 
+      labels = c(
+        
+        f = "Free",
+        
+        capsule = "Encapsulated"
+        
+      ),
+      limits = c("f", "capsule"),
+      
+      name = "Treatment"
     ) +
     scale_linetype_manual(
-      values = treatment_linetypes
+      values = treatment_linetypes, 
+      labels = c(
+        
+        f = "Free",
+        
+        capsule = "Encapsulated"
+        
+      ),
+      limits = c("f", "capsule"),
+      
+      name = "Treatment"
     ) +
     labs(
       x = "Day",
@@ -690,42 +710,6 @@ plot_mass <- function(plot_data,
     ###########################################################
   # Colors / linetypes
   ###########################################################
-  
-  scale_colour_manual(values = treatment_colors,
-    
-    labels = c(
-      
-      f = "Free",
-      
-      capsule = "Capsule"
-      
-    ),
-    
-    name = "Treatment"
-    
-  ) +
-    
-    scale_linetype_manual(
-      
-      values = c(
-        
-        f = 1,
-        
-        capsule = 2
-        
-      ),
-      
-      labels = c(
-        
-        f = "Free",
-        
-        capsule = "Capsule"
-        
-      ),
-      
-      name = "Treatment"
-      
-    ) +
     
     labs(
       
@@ -733,6 +717,23 @@ plot_mass <- function(plot_data,
       
       y = ylab
       
+    )+
+    guides(
+      colour = guide_legend(
+        override.aes = list(
+          linewidth = 1,
+          linetype = c("solid", "dotdash"),
+          shape = 16
+        )
+      ),
+      linetype = "none"
+    )+
+    
+    theme(
+      legend.position = "top",
+      legend.key.width = unit(1.5, "cm"),
+      legend.key.height = unit(0.5, "cm"),
+      legend.spacing.x = unit(0.4, "cm")
     )
 }
 

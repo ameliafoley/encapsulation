@@ -17,13 +17,13 @@ treatment_colors <- c(
   "planktonic"  = "#D85A44FF",
   
   # Aqueous / supernatant
-  "aqueous"     = "#98A54FFF",
-  "super"       = "#98A54FFF",
-  "supernatant" = "#98A54FFF",
+  "aqueous"     = "#2E92A2FF",
+  "super"       = "#2E92A2FF",
+  "supernatant" = "#2E92A2FF",
   
   # Capsule
-  "capsule"     = "#2E92A2FF",
-  "cap"         = "#2E92A2FF",
+  "capsule"     = "#98A54FFF",
+  "cap"         = "#98A54FFF",
   
   # Encapsulated aqueous
   "cap+aq"      = "#61BEA4FF",
@@ -413,28 +413,28 @@ plot_cfu <- function(plot_data,
       
     ) +
     
-    geom_text(
-      
-      data = plot_data,
-      
-      aes(
-        
-        day,
-        
-        ((mean +
-          se)*3) , #plot cfu facet offset
-        
-        label = letters,
-        
-        group = rx
-        
-      ),
-      
-      position = pd,
-      
-      size = 3.5
-      
-    ) +
+    # geom_text(
+    #   
+    #   data = plot_data,
+    #   
+    #   aes(
+    #     
+    #     day,
+    #     
+    #     ((mean +
+    #       se)*3) , #plot cfu facet offset
+    #     
+    #     label = letters,
+    #     
+    #     group = rx
+    #     
+    #   ),
+    #   
+    #   position = pd,
+    #   
+    #   size = 3.5
+    #   
+    # ) +
     
     scale_y_log10(
       
@@ -660,28 +660,28 @@ plot_cfu <- function(plot_data,       #for facet wrap
       
     ) +
     
-    geom_text(
-      
-      data = plot_data,
-      
-      aes(
-        
-        day,
-        
-        ((mean +
-            se)*1.5) , #plot cfu letter spacing
-        
-        label = letters,
-        
-        group = rx
-        
-      ),
-      
-      position = pd,
-      
-      size = 3.5
-      
-    ) +
+    # geom_text(
+    #   
+    #   data = plot_data,
+    #   
+    #   aes(
+    #     
+    #     day,
+    #     
+    #     ((mean +
+    #         se)*1.5) , #plot cfu letter spacing
+    #     
+    #     label = letters,
+    #     
+    #     group = rx
+    #     
+    #   ),
+    #   
+    #   position = pd,
+    #   
+    #   size = 3.5
+    #   
+    # ) +
     
     scale_y_log10(
       
@@ -1088,28 +1088,28 @@ plot_component <- function(plot_data,
       
     ) +
     
-    geom_text(
-      
-      data = plot_data,
-      
-      aes(
-        
-        day,
-        
-        ((mean +
-          se)*3) ,  ##comp offset
-        
-        label = letters,
-        
-        group = sample
-        
-      ),
-      
-      position = pd,
-      
-      size = 3.5
-      
-    ) +
+    # geom_text(
+    #   
+    #   data = plot_data,
+    #   
+    #   aes(
+    #     
+    #     day,
+    #     
+    #     ((mean +
+    #       se)*3) ,  ##comp offset
+    #     
+    #     label = letters,
+    #     
+    #     group = sample
+    #     
+    #   ),
+    #   
+    #   position = pd,
+    #   
+    #   size = 3.5
+    #   
+    # ) +
     
     scale_y_log10(
       
@@ -1265,25 +1265,25 @@ plot_component <- function(plot_data,              #new function for facet wrapp
   
   ggplot() +
     
-    geom_point(
-      
-      data = raw_data,
-      
-      aes(
-        
-        day,
-        
-        avg_cfu,
-        
-        colour = sample
-        
-      ),
-      
-      alpha = .35,
-      
-      position = pd
-      
-    ) +
+    # geom_point(
+    #   
+    #   data = raw_data,
+    #   
+    #   aes(
+    #     
+    #     day,
+    #     
+    #     avg_cfu,
+    #     
+    #     colour = sample
+    #     
+    #   ),
+    #   
+    #   alpha = .35,
+    #   
+    #   position = pd
+    #   
+    # ) +
     
     geom_line(
       
@@ -1353,28 +1353,28 @@ plot_component <- function(plot_data,              #new function for facet wrapp
       
     ) +
     
-    geom_text(
-      
-      data = plot_data,
-      
-      aes(
-        
-        day,
-        
-        ((mean +
-            se)*4.5),  ##comp offset
-        
-        label = letters,
-        
-        group = sample
-        
-      ),
-      
-      position = pd,
-      
-      size = 3.5
-      
-    ) +
+    # geom_text(
+    #   
+    #   data = plot_data,
+    #   
+    #   aes(
+    #     
+    #     day,
+    #     
+    #     ((mean +
+    #         se)*4.5),  ##comp offset
+    #     
+    #     label = letters,
+    #     
+    #     group = sample
+    #     
+    #   ),
+    #   
+    #   position = pd,
+    #   
+    #   size = 3.5
+    #   
+    # ) +
     
     scale_y_log10(
       
@@ -1429,16 +1429,43 @@ plot_component <- function(plot_data,              #new function for facet wrapp
       )
     ) +
     scale_colour_manual(
-      values = treatment_colors
+      values = treatment_colors,
+      name = "Sample", 
+      limits = c("planktonic", "supernatant", "capsule"),
+      labels = c(
+                 planktonic = "Free", 
+                 supernatant = "Extracapsular", 
+                 capsule = "Capsule")
     ) +
     scale_linetype_manual(
-      values = treatment_linetypes
+      values = treatment_linetypes, 
+      name = "Sample", 
+      labels = c(planktonic = "Free", 
+                 supernatant = "Extracapsular", 
+                 capsule = "Capsule")
     ) +
     labs(
       x = "Day",
-      y = ylab,
-      colour = NULL,
-      linetype = NULL
+      y = ylab
+      # colour = NULL,
+      # linetype = NULL
+    )+
+    
+    guides(
+      colour = guide_legend(
+        override.aes = list(
+          linewidth = 1,
+          linetype = c("solid", "dashed", "dotted"),
+          shape = 16
+        )
+      ),
+      linetype = "none"
+    )+
+    theme(
+      legend.position = "top",
+      legend.key.width = unit(2, "cm"),
+      legend.key.height = unit(0.5, "cm"),
+      legend.spacing.x = unit(0.4, "cm")
     )
   
 }

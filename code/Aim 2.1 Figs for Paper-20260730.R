@@ -242,15 +242,16 @@ ggplot(plot_fla,
   ) +
   scale_colour_manual(
     values = treatment_colors, 
+    #limits = c("Free", "Extracapsular"),
     labels = c(
       
       f = "Free",
       
-      c = "Capsule"
+      c = "Extracapsular"
       
     ),
     
-    name = "Treatment"
+    name = "Sample"
   ) +
   scale_linetype_manual(
     values = treatment_linetypes
@@ -590,18 +591,18 @@ plot_pah <- function(plot_data,
     ) +
     
     ## Tukey letters
-    geom_text(
-      aes(
-        y = .data[[mean_col]] +
-          .data[[se_col]] +
-          letter_offset,
-        label = letters,
-        group = treatment
-      ),
-      position = pd,
-      size = 3.5,
-      show.legend = FALSE
-    ) +
+    # geom_text(
+    #   aes(
+    #     y = .data[[mean_col]] +
+    #       .data[[se_col]] +
+    #       letter_offset,
+    #     label = letters,
+    #     group = treatment
+    #   ),
+    #   position = pd,
+    #   size = 3.5,
+    #   show.legend = FALSE
+    # ) +
     
     ## Dunnett stars
     geom_text(
@@ -632,19 +633,22 @@ plot_pah <- function(plot_data,
       )
     ) +
     scale_colour_manual(
-      name = "Treatment",
+      name = "Sample",
       values = treatment_colors,
+      limits = c("f", "c"),
       labels = c(
-        c = "Capsule",
+        c = "Extracapsular",
         f = "Free"
-      )
+      ), 
+    #  limits = c("Free", "Extracapsular")
     ) +
     
     scale_linetype_manual(
-      name = "Treatment",
+      name = "Sample",
       values = treatment_linetypes,
+      #limits = c("Free", "Extracapsular"),
       labels = c(
-        c = "Capsule",
+        c = "Extracapsular",
         f = "Free"
       )
     ) +
@@ -653,7 +657,7 @@ plot_pah <- function(plot_data,
       colour = guide_legend(
         override.aes = list(
           linewidth = 1,
-          linetype = c("dotted", "solid"),
+          linetype = c("solid", "dotted"),
           shape = 16
         )
       ),

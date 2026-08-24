@@ -23,15 +23,15 @@ treatment_colors <- c(
   "f"  = "#D85A44FF",
   
   # Aqueous / supernatant
-  "aqueous"     = "#98A54FFF",
-  "super"       = "#98A54FFF",
-  "supernatant" = "#98A54FFF",
-  "c" = "#98A54FFF",
+  "aqueous"     = "#2E92A2FF",
+  "super"       = "#2E92A2FF",
+  "supernatant" = "#2E92A2FF",
+  "c" = "#2E92A2FF",
   
   # Capsule
-  "capsule"     = "#2E92A2FF",
-  "cap"         = "#2E92A2FF",
-  "cc"         = "#2E92A2FF",
+  "capsule"     = "#98A54FFF",
+  "cap"         = "#98A54FFF",
+  "cc"         = "#98A54FFF",
   
   # Encapsulated combined
   "cap+aq"      = "#61BEA4FF",
@@ -63,7 +63,7 @@ treatment_linetypes <- c(
 
 results <- read_excel(
   here("data",
-       "Exp 2.2 PAH Results updated.xlsx")
+       "Exp 2.2 PAH Results-updated-20260819.xlsx")
 )
 
 results <- results[, -c(6,7)]
@@ -279,7 +279,7 @@ analyze_pah <- function(compound_name){
       
       fit,
       
-      ~ treatment * day |
+      ~ treatment * day | 
         consortia
       
     )
@@ -448,23 +448,7 @@ make_plot_data <- function(summary_data,
         "treatment",
         "day"
       )
-    ) %>%
-    
-    mutate(
-      
-      letters = ifelse(
-        treatment == "cc",
-        "",
-        letters
-      ),
-      
-      stars = ifelse(
-        treatment == "cc",
-        "",
-        stars
-      )
-      
-    )
+    ) 
   
   plot_data
   
@@ -498,8 +482,14 @@ plot_phe <- make_plot_data(
 plot_pah <- function(plot_data,
                      raw_data,
                      ylab){
+  # NEW: make day a true continuous time variable
+  plot_data <- plot_data %>%
+    mutate(day = as.numeric(as.character(day)))
   
-  pd <- position_dodge(width = 0.4)
+  raw_data <- raw_data %>%
+    mutate(day = as.numeric(as.character(day)))
+  
+  pd <- position_dodge(width = 7)
   
   ###########################################################
   # Automatic annotation spacing
@@ -514,7 +504,7 @@ plot_pah <- function(plot_data,
     )
   
   letter_offset <- 0.04 * y_max
-  star_offset   <- 0.08 * y_max
+  star_offset   <- 0.04 * y_max #was .08 when combined with letters
   
   ggplot() +
     
@@ -538,7 +528,7 @@ plot_pah <- function(plot_data,
     
     position = pd,
     
-    alpha = 0.35,
+    alpha = 0.25,
     
     size = 2
     
@@ -609,7 +599,7 @@ plot_pah <- function(plot_data,
       
     ),
     
-    width = 0.2,
+    width = 5,
     
     position = pd
     
@@ -619,34 +609,31 @@ plot_pah <- function(plot_data,
   # Tukey letters
   ###########################################################
   
-  geom_text(
-    
-    data =
-      subset(
-        plot_data,
-        treatment != "cc"
-      ),
-    
-    aes(
-      
-      x = day,
-      
-      y =
-        mean +
-        se +
-        letter_offset,
-      
-      label = letters,
-      
-      group = treatment
-      
-    ),
-    
-    position = pd,
-    
-    size = 3.5
-    
-  ) +
+  # geom_text(
+  # 
+  #   data =
+  #     plot_data,
+  # 
+  #   aes(
+  # 
+  #     x = day,
+  # 
+  #     y =
+  #       mean +
+  #       se +
+  #       letter_offset,
+  # 
+  #     label = letters,
+  # 
+  #     group = treatment
+  # 
+  #   ),
+  # 
+  #   position = pd,
+  # 
+  #   size = 3.5
+  # 
+  # ) +
     
     ###########################################################
   # Dunnett stars
@@ -655,10 +642,7 @@ plot_pah <- function(plot_data,
   geom_text(
     
     data =
-      subset(
-        plot_data,
-        treatment != "cc"
-      ),
+      plot_data,
     
     aes(
       
@@ -703,11 +687,11 @@ plot_pah <- function(plot_data,
         
         a = "Abiotic",
         
-        k = "K-strat",
+        k = "K-Strat",
         
         m = "Mixed",
         
-        r = "R-strat"
+        r = "R-Strat"
         
       )
       
@@ -719,6 +703,9 @@ plot_pah <- function(plot_data,
   # Theme
   ###########################################################
   
+  scale_x_continuous(
+    breaks = c(0, 7, 14, 21, 42)
+  ) +
   theme_pubr() +
     theme(
       strip.text = element_text(
@@ -727,10 +714,28 @@ plot_pah <- function(plot_data,
       )
     ) +
     scale_colour_manual(
-      values = treatment_colors
+      values = treatment_colors, 
+      limits = c("f", "c", "cc"),
+      name = "Sample", 
+      labels = c(
+        
+        f = "Free",
+        
+        c = "Extracapsular",
+        
+        cc = "Capsule")
     ) +
     scale_linetype_manual(
-      values = treatment_linetypes
+      values = treatment_linetypes, 
+      limits = c("f", "c", "cc"),
+      name = "Sample", 
+      labels = c(
+        
+        f = "Free",
+        
+        c = "Extracapsular",
+        
+        cc = "Capsule")
     ) +
     labs(
       x = "Day",
@@ -742,18 +747,6 @@ plot_pah <- function(plot_data,
     ###########################################################
   # Colors
   ###########################################################
-  
-  scale_colour_manual(values = treatment_colors,
-    
-    labels = c(
-      
-      f = "Free",
-      
-      c = "Capsule",
-      
-      cc = "Capsule-associated"
-      
-    )) +
     
     scale_shape_manual(
       
@@ -772,10 +765,28 @@ plot_pah <- function(plot_data,
       
       y = ylab,
       
-      colour = "Treatment",
+      #colour = "Treatment",
       
       shape = "Detection"
       
+    )+
+    
+    guides(
+      colour = guide_legend(
+        override.aes = list(
+          linewidth = 1,
+          linetype = c("solid", "dashed", "dotted"),
+          shape = 16
+        )
+      ),
+      linetype = "none"
+    )+
+    
+    theme(
+      legend.position = "top",
+      legend.key.width = unit(1.5, "cm"),
+      legend.key.height = unit(0.5, "cm"),
+      legend.spacing.x = unit(0.4, "cm")
     )
   
 }
@@ -793,6 +804,337 @@ plot_pah(
 )
 # plot phe
 plot_pah(
+  plot_phe,
+  filter(long, compound == "phenanthrene"),
+  "Phenanthrene (ng/mL)"
+)
+
+##testing out faceting to break down messy figures more
+plot_pah_facet <- function(plot_data,
+                     raw_data,
+                     ylab){
+  # NEW: make day a true continuous time variable
+  plot_data <- plot_data %>%
+    mutate(day = as.numeric(as.character(day)))
+  
+  raw_data <- raw_data %>%
+    mutate(day = as.numeric(as.character(day)))
+  
+  pd <- position_dodge(width = 7)
+  
+  ###########################################################
+  # Automatic annotation spacing
+  ###########################################################
+  
+  y_max <-
+    
+    max(
+      plot_data$mean +
+        plot_data$se,
+      na.rm = TRUE
+    )
+  
+  letter_offset <- 0.04 * y_max
+  star_offset   <- 0.04 * y_max #was .08 when combined with letters
+  
+  ggplot() +
+    
+    ###########################################################
+  # Raw observations
+  ###########################################################
+  
+  geom_point(
+    
+    data = raw_data,
+    
+    aes(
+      x = day,
+      y = value,
+      colour = treatment,
+      shape = factor(
+        bdl,
+        levels = c(FALSE, TRUE)
+      )
+    ),
+    
+    position = pd,
+    
+    alpha = 0.25,
+    
+    size = 2
+    
+  ) +
+    
+    ###########################################################
+  # Mean lines
+  ###########################################################
+  
+  geom_line(
+    
+    data = plot_data,
+    
+    aes(
+      x = day,
+      y = mean,
+      colour = treatment,
+      group = treatment, 
+      linetype = treatment
+    ),
+    
+    linewidth = 0.9,
+    
+    position = pd
+    
+  ) +
+    
+    ###########################################################
+  # Mean points
+  ###########################################################
+  
+  geom_point(
+    
+    data = plot_data,
+    
+    aes(
+      x = day,
+      y = mean,
+      colour = treatment,
+      group = treatment
+    ),
+    
+    size = 2.5,
+    
+    position = pd
+    
+  ) +
+    
+    ###########################################################
+  # Error bars
+  ###########################################################
+  
+  geom_errorbar(
+    
+    data = plot_data,
+    
+    aes(
+      
+      x = day,
+      
+      ymin = mean - se,
+      
+      ymax = mean + se,
+      
+      colour = treatment,
+      
+      group = treatment
+      
+    ),
+    
+    width = 5,
+    
+    position = pd
+    
+  ) +
+    
+    ###########################################################
+  # Tukey letters
+  ###########################################################
+  
+  # geom_text(
+  # 
+  #   data =
+  #     plot_data,
+  # 
+  #   aes(
+  # 
+  #     x = day,
+  # 
+  #     y =
+  #       mean +
+  #       se +
+  #       letter_offset,
+  # 
+  #     label = letters,
+  # 
+  #     group = treatment
+  # 
+  #   ),
+  # 
+  #   position = pd,
+  # 
+  #   size = 3.5
+  # 
+  # ) +
+  
+  ###########################################################
+  # Dunnett stars
+  ###########################################################
+  
+  geom_text(
+    
+    data =
+      plot_data,
+    
+    aes(
+      
+      x = day,
+      
+      y =
+        mean +
+        se +
+        star_offset,
+      
+      label =
+        ifelse(
+          day == "0",
+          "",
+          stars
+        ),
+      
+      group = treatment
+      
+    ),
+    
+    position = pd,
+    
+    size = 4,
+    
+    fontface = "bold"
+    
+  ) +
+    
+    ###########################################################
+  # Facets
+  ###########################################################
+  
+  facet_wrap(
+    
+    ~treatment + consortia,
+    ncol = 4,
+    
+    labeller = as_labeller(
+      
+      c(
+        
+        a = "Abiotic",
+        
+        k = "K-Strat",
+        
+        m = "Mixed",
+        
+        r = "R-Strat"
+        
+      )
+      
+    )
+    
+  ) +
+    
+    ###########################################################
+  # Theme
+  ###########################################################
+  
+  scale_x_continuous(
+    breaks = c(0, 7, 14, 21, 42)
+  ) +
+    theme_pubr() +
+    theme(
+      strip.text = element_text(
+        face = "italic",
+        size = 12
+      )
+    ) +
+    scale_colour_manual(
+      values = treatment_colors, 
+      limits = c("f", "c", "cc"),
+      name = "Sample", 
+      labels = c(
+        
+        f = "Free",
+        
+        c = "Extracapsular",
+        
+        cc = "Capsule")
+    ) +
+    scale_linetype_manual(
+      values = treatment_linetypes, 
+      limits = c("f", "c", "cc"),
+      name = "Sample", 
+      labels = c(
+        
+        f = "Free",
+        
+        c = "Extracapsular",
+        
+        cc = "Capsule")
+    ) +
+    labs(
+      x = "Day",
+      y = ylab,
+      colour = NULL,
+      linetype = NULL
+    )+
+    
+    ###########################################################
+  # Colors
+  ###########################################################
+  
+  scale_shape_manual(
+    
+    values = c(16,1),
+    
+    labels = c(
+      "Detected",
+      "<LOD"
+    )
+    
+  ) +
+    
+    labs(
+      
+      x = "Day",
+      
+      y = ylab,
+      
+      #colour = "Treatment",
+      
+      shape = "Detection"
+      
+    )+
+    
+    guides(
+      colour = guide_legend(
+        override.aes = list(
+          linewidth = 1,
+          linetype = c("solid", "dashed", "dotted"),
+          shape = 16
+        )
+      ),
+      linetype = "none"
+    )+
+    
+    theme(
+      legend.position = "top",
+      legend.key.width = unit(1.5, "cm"),
+      legend.key.height = unit(0.5, "cm"),
+      legend.spacing.x = unit(0.4, "cm")
+    )
+  
+}
+#plot fluoranthene
+plot_pah_facet(
+  plot_fla,
+  filter(long, compound == "fluoranthene"),
+  "Fluoranthene (ng/mL)"
+)
+# plot nap
+plot_pah_facet(
+  plot_nap,
+  filter(long, compound == "naphthalene"),
+  "Naphthalene (ng/mL)"
+)
+# plot phe
+plot_pah_facet(
   plot_phe,
   filter(long, compound == "phenanthrene"),
   "Phenanthrene (ng/mL)"
