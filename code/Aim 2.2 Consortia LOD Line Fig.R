@@ -189,7 +189,7 @@ ggplot(qpcr_summary, aes(x = day, y = mean_gene_copies, color = sample.type)) +
                 labels = trans_format( "log10", math_format(10^.x) )) +
   labs(
     title = "Mean Gene Copies per Sample Volume Over Time (with SE)",
-    x = "Time (days)",
+    x = "Day",
     y = "Gene Copies per Sample Volume (log10 scale)",
     color = "Treatment"
   ) +
@@ -235,7 +235,7 @@ ggplot(qpcr_summary_ind, aes(x = day, y = mean_gene_copies, color = strain)) +
                 labels = trans_format( "log10", math_format(10^.x) ))+
   labs(
     title = "Mean Gene Copies per mL",
-    x = "Time (days)",
+    x = "Day",
     y = "Gene Copies per mL",
     color = "Treatment"
   ) +
@@ -251,7 +251,7 @@ ggplot(qpcr_summary_ind, aes(x = day, y = mean_gene_copies, color = strain)) +
                      labels = trans_format('log10', math_format(10^.x)))+
   labs(
     title = "Mean Gene Copies per mL",
-    x = "Time (days)",
+    x = "Day",
     y = "Gene Copies per mL",
     color = "Treatment"
   ) +
@@ -285,7 +285,7 @@ ggplot(qpcr_avg_ind, aes(x = day, y = gene_copies_per_mL, color = strain)) +
   labs(
     title = "Mean Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)",
+    x = "Day",
     color = "Treatment"
   ) +
   theme_minimal()
@@ -315,7 +315,7 @@ strain_labels <- c(
   "a.venet"   = "italic('A. venetianus')",
   "a.faecalis"= "italic('A. faecalis')",
   "p.resin"   = "italic('P. resinovorans')",
-  "sphingo.sp"= "italic('Sphingomonas sp.')",
+  "sphingo.sp"= "italic('Sphingobium sp.')",
   "n.penta"   = "italic('N. pentaromativorans')",
   "p.putida"  = "italic('P. putida')"
 )
@@ -414,7 +414,7 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = strain, shape = str
     fun = mean,
     geom = "point",
     position = pjd,           # jittered points
-    size = 2
+    size = 1.5
   ) +
   stat_summary(
     fun.data = mean_se,
@@ -429,13 +429,16 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = strain, shape = str
     consortia = as_labeller(my_labels$consortia)
   )) +
   labs(
-    title = "Mean Gene Copies per mL",
+    #title = "Mean Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)"
+    x = "Day"
   ) +
   theme_pubr()+
   theme(
-    strip.text = element_text(size = 12, face = "italic")
+    strip.text = element_text(size = 12, face = "italic"), 
+    axis.text.x = element_text(size = 9), 
+    axis.text.y = element_text(size = 9), 
+    panel.spacing.x = unit(0.08, "cm")
     #strip.background = element_rect(fill = "grey90", color = NA)
   )+ scale_x_continuous(breaks = c(0, 7, 14, 21, 42))+
   scale_color_manual(values = strain_colors, 
@@ -468,7 +471,7 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = strain, shape = str
     linetype = "dashed",
     colour = "grey40"
   )
-
+qpcr_all_fig <- last_plot()
 
 ##MASS BALANCE FOR QPCR DATA#
 
@@ -545,8 +548,8 @@ wide %>% filter(tolower(treatment) == "free" | tolower(treatment) == "planktonic
 
 # Save
 #write.csv(wide, "qpcr_massbalance_including_planktonic.csv", row.names = FALSE)
-pd  <- position_dodge(width = 1)  # for lines & error bars
-pjd <- position_jitterdodge(jitter.width = .3, jitter.height = 0, dodge.width = 1)  # for points
+pd  <- position_dodge(width = 4)  # for lines & error bars
+pjd <- position_jitterdodge(jitter.width = .3, jitter.height = 0, dodge.width = 4)  # for points
 my_labels <- list(
   treatment = c(
     "free" = "Free",
@@ -585,9 +588,9 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain, shape = strain)) 
     consortia = as_labeller(my_labels$consortia)
   )) +
   labs(
-    title = "Mass Balance - Gene Copies per mL",
+   # title = "Mass Balance - Gene Copies per mL",
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)",
+    x = "Day",
     color = "Strain"
   ) +
   theme_pubr()+
@@ -620,6 +623,7 @@ ggplot(wide, aes(x = day, y = gc_total_per_mL, color = strain, shape = strain)) 
     ),
     shape = "none"
   )
+
 ##trying faceting by STRAIN instead for easier comparisons
 treatment_colors <- c(
   # Free / planktonic
@@ -672,7 +676,7 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = sample.type, linety
     fun = mean,
     geom = "point",
     position = pjd,           # jittered points
-    size = 2
+    size = 1.5
   ) +
   stat_summary(
     fun.data = mean_se,
@@ -689,7 +693,7 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = sample.type, linety
   )) +
   labs(
     y = "Gene Copies per mL (log scale)",
-    x = "Time (days)"
+    x = "Day"
   ) +
   theme_pubr()+
   theme(
@@ -722,15 +726,146 @@ ggplot(qpcr_plot, aes(x = day, y = gene_copies_plot, color = sample.type, linety
     legend.position = "top",
     legend.key.width = unit(2, "cm"),
     legend.key.height = unit(0.5, "cm"),
-    legend.spacing.x = unit(0.4, "cm")
+    legend.spacing.x = unit(0.4, "cm"), 
+    axis.text.x = element_text(size = 9), 
+    axis.text.y = element_text(size = 9), 
+    panel.spacing.x = unit(0.08, "cm")
   )+
   geom_hline(
     yintercept = LOD_line,
     linetype = "dashed",
     colour = "grey40"
   )
-                        
 
+ 
+##FACET BY STRAIN ONLY FOR SHARED STRAINS                       
+library(dplyr)
+
+shared_strains <- qpcr_plot %>%
+  distinct(strain, consortia) %>%
+  count(strain) %>%
+  filter(n > 1) %>%
+  pull(strain)
+
+shared_strains
+
+qpcr_shared <- qpcr_plot %>%
+  filter(strain %in% shared_strains) %>%
+  mutate(
+    community_context = if_else(
+      consortia == "m",
+      "Mixed",
+      "Original",
+      missing = "Original"
+    ),
+    strain = factor(
+      strain,
+      levels = c(
+        "n.penta",
+        "sphingo.sp",
+        "p.putida",
+        "p.resin"
+      )
+    ),
+    community_context = factor(
+      community_context,
+      levels = c("Original", "Mixed")
+    )
+  )
+
+table(qpcr_shared$strain, qpcr_shared$consortia)
+ggplot(
+  qpcr_shared,
+  aes(
+    x = day,
+    y = gene_copies_plot,
+    color = sample.type,
+    linetype = sample.type
+  )
+) +
+  stat_summary(
+    fun = mean,
+    geom = "line",
+    aes(group = sample.type),
+    position = pd
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = pjd,
+    size = 1.5
+  ) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    width = 4,
+    position = pd,
+    linetype = "solid"
+  ) +
+  scale_y_log10(
+    breaks = trans_breaks("log10", function(x) 10^x),
+    labels = trans_format("log10", math_format(10^.x))
+  ) +
+  facet_grid(
+    community_context ~ strain,
+    labeller = labeller(
+      strain = as_labeller(strain_labels, label_parsed)
+    )
+  ) +
+  geom_hline(
+    yintercept = LOD_line,
+    linetype = "dashed",
+    colour = "grey40"
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 7, 14, 21, 42)
+  ) +
+  labs(
+    y = "Gene Copies per mL (log scale)",
+    x = "Day"
+  ) +
+  scale_color_manual(
+    values = treatment_colors,
+    name = "Sample",
+    labels = c(
+      planktonic = "Free",
+      supernatant = "Extracapsular",
+      capsule = "Capsule"
+    ),
+    limits = c("planktonic", "supernatant", "capsule")
+  ) +
+  scale_linetype_manual(
+    values = treatment_linetypes,
+    name = "Sample",
+    labels = c(
+      planktonic = "Free",
+      supernatant = "Extracapsular",
+      capsule = "Capsule"
+    ),
+    limits = c("planktonic", "supernatant", "capsule")
+  ) +
+  guides(
+    colour = guide_legend(
+      override.aes = list(
+        linewidth = 1,
+        linetype = c("solid", "dashed", "dotted"),
+        shape = 16
+      )
+    ),
+    linetype = "none"
+  ) +
+  theme_pubr() +
+  theme(
+    legend.position = "top",
+    legend.key.width = unit(1.5, "cm"),
+    legend.key.height = unit(0.4, "cm"),
+    legend.spacing.x = unit(0.25, "cm"),
+    strip.text = element_text(size = 9.5), 
+    axis.text.x = element_text(size = 9), 
+    axis.text.y = element_text(size = 9), 
+    panel.spacing.x = unit(0.08, "cm")
+  )
+qpcr_shared <- last_plot()
 
   # scale_shape_manual(
   #   name = "Strain",

@@ -88,3 +88,87 @@ ggplot(data = incomplete, aes(x = time_h, y = corrected, color = strain)) +
   theme(panel.grid.minor.y = element_line(color = "grey", linetype = "dashed")) +
   ggtitle("PAH-degrading Strain Screening")+
   facet_wrap(~media, ncol = 3)
+
+
+##gcplyr
+library(gcplyr)
+merge <- merge %>% mutate(copy.no = case_when(
+  strain == "p.putida" ~ 7,
+  strain == "a.venet"  ~ 6,
+  strain == "p.resin"  ~ 5,
+  strain == "n.penta"  ~ 3,
+  strain == "a.faec"    ~ 3,
+  strain == "sphingo"  ~ 2,
+  TRUE ~ NA_real_
+))
+growth_dat <- merge %>%
+  group_by(well) %>%
+  mutate(
+    growth_rate = calc_deriv(
+      x = time_h,
+      y = corrected,
+      percapita = TRUE,
+      blank = 0,
+      window_width_n = 11,
+      trans_y = "log"
+    )
+  ) %>%
+  ungroup()
+ggplot(growth_dat,
+       aes(x = time_h, y = growth_rate, color = strain)) +
+  geom_line() +
+  labs(
+    x = "Time (h)",
+    y = "Per-capita growth rate (1/h)"
+  ) +
+  theme_classic()
+growth_summary <- growth_dat %>%
+  group_by(strain, media, copy.no, well) %>%
+  summarize(
+    max_growth_rate = max_gc(growth_rate, na.rm = TRUE),
+    max_growth_time = extr_val(
+      time_h,
+      which_max_gc(growth_rate)
+    ),
+    doubling_time = doubling_time(max_growth_rate)
+  )
+ggplot(growth_summary, 
+       aes(x = copy.no, y = max_growth_rate, color = strain)) +
+  geom_point() + 
+  geom_smooth(
+    aes(group = 1),
+    method = "lm",
+    se = TRUE,
+    color = "black"
+  ) +
+  labs(
+    x = "16S copy number", 
+    y = "Max Growth Rate" ) + 
+  theme_classic() +
+  facet_wrap(~media)
+
+library(dplyr)
+library(broom)
+
+regression_results <- growth_summary %>%
+  group_by(media) %>%
+  group_modify(~ {
+    
+    model <- lm(max_growth_rate ~ copy.no, data = .x)
+    
+    coef <- tidy(model) %>%
+      filter(term == "copy.no")
+    
+    fit <- glance(model)
+    
+    tibble(
+      slope = coef$estimate,
+      std_error = coef$std.error,
+      p_value = coef$p.value,
+      r_squared = fit$r.squared,
+      adj_r_squared = fit$adj.r.squared
+    )
+  }) %>%
+  ungroup()
+
+regression_results

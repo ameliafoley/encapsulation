@@ -339,7 +339,7 @@ plot_dat <- summary_by_dose %>%
                 labels = c("-S9", "+S9"))
   )
 ggplot(
-  plot_dat,
+  plot_dat %>% filter(strain == "TA98"),
   aes(x = dose_value,
       y = mean_rev,
       color = samples,
@@ -347,13 +347,13 @@ ggplot(
 ) +
   geom_hline(
     aes(yintercept = dmso_mean),
-    linetype = "dashed",
-    color = "blue"
+    linetype = "solid",
+    color = "black"
   ) +
   geom_hline(
     aes(yintercept = dmso_2x),
-    linetype = "dotted",
-    color = "red"
+    linetype = "dashed",
+    color = "black"
   ) +
   geom_point(size = 3) +
   geom_errorbar(
@@ -374,13 +374,76 @@ ggplot(
   ) +
   labs(
     title = "72-hour Ames Dose Response",
-    subtitle = "Rows: Strain/S9   Columns: Experiment and Mix",
-    x = "Dose",
-    y = "Mean revertants ± SE"
+    subtitle = "Black = DMSO mean | Black dashed = 2× DMSO threshold",
+    x = "Dose (µL/plate)",
+    y = "Mean revertants ± SE", 
+    color = "Treatment"
   ) +
   theme_bw(base_size = 12) +
   theme(
     strip.background = element_rect(fill = "grey90"),
     strip.text = element_text(face = "bold"),
     axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+  )+
+  theme_pubr()+
+  
+  scale_color_manual(
+    values = c(
+      "abiotic" = "#D55E00",
+      "biotic" = "#0072B2"
+    ))
+
+ggplot(
+  plot_dat %>% filter(strain == "TA100"),
+  aes(x = dose_value,
+      y = mean_rev,
+      color = samples,
+      group = samples)
+) +
+  geom_hline(
+    aes(yintercept = dmso_mean),
+    linetype = "solid",
+    color = "black"
+  ) +
+  geom_hline(
+    aes(yintercept = dmso_2x),
+    linetype = "dashed",
+    color = "black"
+  ) +
+  geom_point(size = 3) +
+  geom_errorbar(
+    aes(
+      ymin = mean_rev - se_rev,
+      ymax = mean_rev + se_rev
+    ),
+    width = 0.25
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  facet_grid(
+    rows = vars(strain, s9),
+    cols = vars(mix, day),
+    scales = "free_y"
+  ) +
+  labs(
+    title = "72-hour Ames Dose Response",
+    subtitle = "Black = DMSO mean | Black dashed = 2× DMSO threshold",
+    x = "Dose (µL/plate)",
+    y = "Mean revertants ± SE", 
+    color = "Treatment"
+  ) +
+  theme_bw(base_size = 12) +
+  theme(
+    strip.background = element_rect(fill = "grey90"),
+    strip.text = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )+
+  
+  scale_color_manual(
+    values = c(
+      "abiotic" = "#D55E00",
+      "biotic" = "#0072B2"
+    ))+
+  theme_pubr()

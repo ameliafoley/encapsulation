@@ -7,6 +7,11 @@ df <- read_excel(
        "Aim 2.3 Sediment Sample Code.xlsx")
 )
 
+weight <- read_excel(
+  here("data", 
+       "Aim 2.3 Sediment Weights.xlsx")
+)
+
 library(dplyr)
 library(tidyr)
 
@@ -53,7 +58,7 @@ sample_code <- df %>%
 #import PAH results
 pah_results <- read_excel(
   here("data",
-       "Sediment Concentration report.xlsx")
+       "Sediment Concentration report-pyr-fixed copy.xlsx") ##changing to "copy" with Abbey's updated results on 20260923
 )
 
 ##combine sample code and PAH results
@@ -70,9 +75,16 @@ pah_joined <- pah_results %>%
     sample_code,
     by = c("Replicate" = "PAH Extract No.")
   )
+weight <- weight %>% mutate(`extract no.` = as.character(`extract no.`))
+
+pah_w <- pah_joined %>%
+  left_join(
+    weight, 
+    by = c("Replicate" = "extract no.")
+  )
 #rename
 
-pah_joined <- pah_joined %>%
+pah_w <- pah_w %>%
   rename(
     pah_extract_no = Replicate,
     pah_sample_type = `Sample Type`,
@@ -86,18 +98,27 @@ pah_joined <- pah_joined %>%
     timepoint = Timepoint,
     sediment_location = Sediment_Location,
     treatment = Treatment,
-    sample_type = Sample_Type
+    sample_type = Sample_Type, 
+    weight_g = weight.g
   )
 
+pah_w <- pah_w %>%
+  mutate(
+    conc_ng_g = case_when(
+      sample_type == "Dissolved Capsule" ~ (concentration / weight_g) * 5,
+      TRUE ~ concentration / weight_g
+    )
+  ) ##adjust for sample weight and sodium citrate dilution
+
 ggplot(
-  pah_joined,
-  aes(x = treatment, y = concentration)
+  pah_w,
+  aes(x = treatment, y = conc_ng_g)
 ) +
   geom_boxplot() +
   facet_wrap(~ sediment_location) +
   theme_classic()
 
-pah_joined <- pah_joined %>%
+pah_w <- pah_w %>%
   mutate(
     sediment_location = factor(
       sediment_location,
@@ -111,7 +132,7 @@ pah_joined <- pah_joined %>%
     replicate = factor(replicate),
     sample_type = factor(sample_type)
   )
-ggplot(pah_joined, aes(x = concentration)) +
+ggplot(pah_w, aes(x = conc_ng_g)) +
   geom_histogram(bins = 40) +
   theme_classic() +
   labs(
@@ -119,7 +140,7 @@ ggplot(pah_joined, aes(x = concentration)) +
     y = "Number of observations",
     title = "Distribution of PAH Concentrations"
   )
-total_pah <- pah_joined %>%
+total_pah <- pah_w %>%
   group_by(
     pah_extract_no,
     sample,
@@ -130,7 +151,7 @@ total_pah <- pah_joined %>%
     sample_type
   ) %>%
   summarise(
-    total_pah = sum(concentration, na.rm = TRUE),
+    total_pah = sum(conc_ng_g, na.rm = TRUE),
     .groups = "drop"
   )
 ggplot(
@@ -199,7 +220,7 @@ total_summary <- total_pah %>%
     n = sum(!is.na(total_pah)),
     se_total_pah = sd_total_pah / sqrt(n),
     .groups = "drop"
-  )
+  ) 
 ggplot(
   total_summary,
   aes(
@@ -218,9 +239,10 @@ ggplot(
     ),
     width = 1
   ) +
-  facet_grid(
+  facet_wrap(
     sample_type ~ sediment_location,
-    scales = "free_y"
+    scales = "free_y", 
+    ncol = 4
   ) +
   theme_classic() +
   labs(
@@ -230,10 +252,10 @@ ggplot(
     title = "Total PAH Concentration Through Time"
   )
 ggplot(
-  pah_joined,
+  pah_w,
   aes(
     x = factor(timepoint),
-    y = concentration,
+    y = conc_ng_g,
     color = treatment
   )
 ) +
@@ -258,10 +280,10 @@ ggplot(
     color = "Treatment",
     title = "Individual PAHs by Sample Type"
   )
-sediment_pah <- pah_joined %>%
+sediment_pah <- pah_w %>%
   filter(sample_type == "Sediment Slurry")
 
-dissolved_pah <- pah_joined %>%
+dissolved_pah <- pah_w %>%
   filter(sample_type == "Dissolved Capsule")
 sediment_total <- total_pah %>%
   filter(sample_type == "Sediment Slurry")
@@ -307,12 +329,12 @@ ggplot(
     title = "Total PAHs in Dissolved Capsule Samples"
   )
 ## multi panel by individual PAH 
-pah_joined %>%
+pah_w %>%
   filter(!is.na(sample_type)) %>%
   ggplot(
     aes(
       x = factor(timepoint),
-      y = concentration,
+      y = conc_ng_g,
       color = treatment
     )
   ) +
@@ -338,14 +360,14 @@ pah_joined %>%
     title = "Individual PAHs by Sample Type"
   )
 #break down individual PAHs into slurry and dissolved capsule plots
-dissolved_pah <- pah_joined %>%
+dissolved_pah <- pah_w %>%
   filter(sample_type == "Dissolved Capsule")
 
 ggplot(
   dissolved_pah,
   aes(
     x = factor(timepoint),
-    y = concentration,
+    y = conc_ng_g,
     color = treatment
   )
 ) +
@@ -374,14 +396,14 @@ ggplot(
     strip.text = element_text(size = 8)
   )
 
-sediment_pah <- pah_joined %>%
+sediment_pah <- pah_w %>%
   filter(sample_type == "Sediment Slurry")
 
 ggplot(
   sediment_pah,
   aes(
     x = factor(timepoint),
-    y = concentration,
+    y = conc_ng_g,
     color = treatment
   )
 ) +
@@ -409,7 +431,7 @@ ggplot(
   theme(
     strip.text = element_text(size = 8)
   )
-pah_filtered <- pah_joined %>%
+pah_filtered <- pah_w %>%
   filter(
     !is.na(sample_type),
     !str_detect(molecule_name, regex("d10|d12", ignore_case = TRUE))
@@ -420,14 +442,14 @@ dissolved_pah <- pah_filtered %>%
 sediment_pah <- pah_filtered %>%
   filter(sample_type == "Sediment Slurry")
 sort(unique(pah_filtered$molecule_name))
-pah_joined %>%
+pah_w %>%
   filter(str_detect(molecule_name, regex("d10|d12", ignore_case = TRUE))) %>%
   distinct(molecule_name)
 ggplot(
   sediment_pah,
   aes(
     x = factor(timepoint),
-    y = concentration,
+    y = conc_ng_g,
     color = treatment
   )
 ) +
@@ -454,7 +476,7 @@ ggplot(
   dissolved_pah,
   aes(
     x = factor(timepoint),
-    y = concentration,
+    y = conc_ng_g,
     color = treatment
   )
 ) +
@@ -494,9 +516,9 @@ plot_pah_profile <- function(data, site, type) {
       treatment
     ) %>%
     summarise(
-      mean_concentration = mean(concentration, na.rm = TRUE),
-      sd_concentration = sd(concentration, na.rm = TRUE),
-      n = sum(!is.na(concentration)),
+      mean_concentration = mean(conc_ng_g, na.rm = TRUE),
+      sd_concentration = sd(conc_ng_g, na.rm = TRUE),
+      n = sum(!is.na(conc_ng_g)),
       se_concentration = sd_concentration / sqrt(n),
       .groups = "drop"
     )

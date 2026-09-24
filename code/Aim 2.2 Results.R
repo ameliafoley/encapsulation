@@ -313,7 +313,7 @@ strain_labels <- c(
   "a.venet"   = "italic('A. venetianus')",
   "a.faecalis"= "italic('A. faecalis')",
   "p.resin"   = "italic('P. resinovorans')",
-  "sphingo.sp"= "italic('Sphingomonas sp.')",
+  "sphingo.sp"= "italic('Sphingobium sp.')",
   "n.penta"   = "italic('N. pentaromativorans')",
   "p.putida"  = "italic('P. putida')"
 )

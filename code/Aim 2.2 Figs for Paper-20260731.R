@@ -504,7 +504,7 @@ plot_pah <- function(plot_data,
     )
   
   letter_offset <- 0.04 * y_max
-  star_offset   <- 0.04 * y_max #was .08 when combined with letters
+ # star_offset   <- 0.04 * y_max #was .08 when combined with letters
   
   ggplot() +
     
@@ -530,7 +530,7 @@ plot_pah <- function(plot_data,
     
     alpha = 0.25,
     
-    size = 2
+    size = 1
     
   ) +
     
@@ -571,7 +571,7 @@ plot_pah <- function(plot_data,
       group = treatment
     ),
     
-    size = 2.5,
+    size = 1.5,
     
     position = pd
     
@@ -640,36 +640,23 @@ plot_pah <- function(plot_data,
   ###########################################################
   
   geom_text(
-    
-    data =
-      plot_data,
-    
+    data = plot_data,
     aes(
-      
       x = day,
-      
-      y =
-        mean +
-        se +
-        star_offset,
-      
-      label =
-        ifelse(
-          day == "0",
-          "",
-          stars
+      y = mean + se +
+        case_when(
+          treatment == "f"  ~ 0.02 * y_max,
+          treatment == "c"  ~ 0.03 * y_max,
+          treatment == "cc" ~ 0.04 * y_max,
+          TRUE ~ 0
         ),
-      
+      label = ifelse(day == 0, "", stars),
       group = treatment
-      
     ),
-    
     position = pd,
-    
-    size = 4,
-    
+    size = 3.5,
     fontface = "bold"
-    
+  
   ) +
     
     ###########################################################
@@ -711,12 +698,15 @@ plot_pah <- function(plot_data,
       strip.text = element_text(
         face = "italic",
         size = 12
-      )
+      ), 
+      axis.text.x = element_text(size = 9), 
+      axis.text.y = element_text(size = 9), 
+      panel.spacing.x = unit(0.08, "cm")
     ) +
     scale_colour_manual(
       values = treatment_colors, 
       limits = c("f", "c", "cc"),
-      name = "Sample", 
+      name = NULL, 
       labels = c(
         
         f = "Free",
@@ -728,7 +718,7 @@ plot_pah <- function(plot_data,
     scale_linetype_manual(
       values = treatment_linetypes, 
       limits = c("f", "c", "cc"),
-      name = "Sample", 
+      name = NULL, 
       labels = c(
         
         f = "Free",
@@ -765,28 +755,48 @@ plot_pah <- function(plot_data,
       
       y = ylab,
       
-      #colour = "Treatment",
+      colour = "Sample",
       
-      shape = "Detection"
+      shape = NULL
       
     )+
     
     guides(
       colour = guide_legend(
+        title = "Sample",
+        order = 1,
+        keywidth = unit(1.5, "cm"),
         override.aes = list(
           linewidth = 1,
           linetype = c("solid", "dashed", "dotted"),
           shape = 16
         )
       ),
-      linetype = "none"
-    )+
-    
+      linetype = "none" ,
+      
+      shape = guide_legend(
+        order = 2,
+        keywidth = unit(0.4, "cm")
+      )
+    ) +
     theme(
       legend.position = "top",
-      legend.key.width = unit(1.5, "cm"),
-      legend.key.height = unit(0.5, "cm"),
-      legend.spacing.x = unit(0.4, "cm")
+      
+      # Put everything on one compact row
+      legend.box = "horizontal",
+      
+      # Much shorter line samples
+      #legend.key.width = unit(1.5, "cm"),
+      legend.key.height = unit(0.35, "cm"),
+      
+      # Reduce spacing between legend entries
+      legend.spacing.x = unit(0.1, "cm"),
+      
+      # Reduce padding around legend keys
+      legend.key.spacing.x = unit(0.1, "cm"),
+      
+      # Reduce overall legend margins
+      legend.margin = margin(0, 0, 2, 0)
     )
   
 }
@@ -796,18 +806,21 @@ plot_pah(
   filter(long, compound == "fluoranthene"),
   "Fluoranthene (ng/mL)"
 )
+fla_cons <- last_plot()
 # plot nap
 plot_pah(
   plot_nap,
   filter(long, compound == "naphthalene"),
   "Naphthalene (ng/mL)"
 )
+nap_cons <- last_plot()
 # plot phe
 plot_pah(
   plot_phe,
   filter(long, compound == "phenanthrene"),
   "Phenanthrene (ng/mL)"
 )
+phe_cons <- last_plot()
 
 ##testing out faceting to break down messy figures more
 plot_pah_facet <- function(plot_data,
@@ -861,7 +874,7 @@ plot_pah_facet <- function(plot_data,
     
     alpha = 0.25,
     
-    size = 2
+    size = 1
     
   ) +
     
@@ -902,7 +915,7 @@ plot_pah_facet <- function(plot_data,
       group = treatment
     ),
     
-    size = 2.5,
+    size = 1.5,
     
     position = pd
     
@@ -1098,24 +1111,31 @@ plot_pah_facet <- function(plot_data,
       
       #colour = "Treatment",
       
-      shape = "Detection"
+      shape = NULL
       
     )+
     
     guides(
       colour = guide_legend(
+        order = 1,
+        keywidth = unit(1.5, "cm"),
         override.aes = list(
           linewidth = 1,
           linetype = c("solid", "dashed", "dotted"),
           shape = 16
         )
       ),
-      linetype = "none"
+      linetype = "none" ,
+      
+      shape = guide_legend(
+        order = 2,
+        keywidth = unit(0.4, "cm")
+      )
     )+
     
     theme(
       legend.position = "top",
-      legend.key.width = unit(1.5, "cm"),
+      #legend.key.width = unit(1.5, "cm"),
       legend.key.height = unit(0.5, "cm"),
       legend.spacing.x = unit(0.4, "cm")
     )
@@ -1127,12 +1147,14 @@ plot_pah_facet(
   filter(long, compound == "fluoranthene"),
   "Fluoranthene (ng/mL)"
 )
+
 # plot nap
 plot_pah_facet(
   plot_nap,
   filter(long, compound == "naphthalene"),
   "Naphthalene (ng/mL)"
 )
+
 # plot phe
 plot_pah_facet(
   plot_phe,

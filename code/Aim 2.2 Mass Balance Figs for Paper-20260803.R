@@ -467,7 +467,14 @@ plot_mass <- function(plot_data,
                       raw_data,
                       ylab = "Total PAH Remaining (%)") {
   
-  pd <- position_dodge(width = 0.4)
+  # Treat sampling day as continuous time
+  plot_data <- plot_data %>%
+    mutate(day = as.numeric(as.character(day)))
+  
+  raw_data <- raw_data %>%
+    mutate(day = as.numeric(as.character(day)))
+  
+  pd <- position_dodge(width = 5)
   
   ###########################################################
   # Automatic annotation spacing
@@ -478,6 +485,17 @@ plot_mass <- function(plot_data,
       plot_data$se_perc_remaining,
     na.rm = TRUE
   )
+  
+  plot_data <- plot_data %>%
+    mutate(
+      star_y = mean_perc_remaining +
+        se_perc_remaining +
+        case_when(
+          treatment_combined == "f"       ~ 0.05 * y_max,
+          treatment_combined == "capsule" ~ 0.09 * y_max,
+          TRUE ~ 0
+        )
+    )
   
   letter_offset <- 0.04 * y_max 
   star_offset   <- 0.04 * y_max #was .08 when combined with letters
@@ -545,7 +563,7 @@ plot_mass <- function(plot_data,
     
     position = pd,
     
-    size = 2.5
+    size = 1.5
     
   ) +
     
@@ -610,29 +628,16 @@ plot_mass <- function(plot_data,
   ###########################################################
   
   geom_text(
-    
     data = plot_data,
-    
     aes(
-      
       x = day,
-      
-      y = mean_perc_remaining +
-        se_perc_remaining +
-        star_offset,
-      
-      label = ifelse(day == "0", "", stars),
-      
+      y = star_y,
+      label = ifelse(day == 0, "", stars),
       group = treatment_combined
-      
     ),
-    
     position = pd,
-    
-    size = 4,
-    
+    size = 3.5,
     fontface = "bold"
-    
   ) +
     
     ###########################################################
@@ -667,12 +672,19 @@ plot_mass <- function(plot_data,
   # Theme
   ###########################################################
   
+  scale_x_continuous(
+    breaks = c(0, 7, 14, 21, 42)
+  ) +
+  
   theme_pubr() +
     theme(
       strip.text = element_text(
         face = "italic",
         size = 12
-      )
+      ), 
+      axis.text.x = element_text(size = 9), 
+      axis.text.y = element_text(size = 9), 
+      panel.spacing.x = unit(0.08, "cm")
     ) +
     scale_colour_manual(
       values = treatment_colors, 
@@ -733,7 +745,9 @@ plot_mass <- function(plot_data,
       legend.position = "top",
       legend.key.width = unit(1.5, "cm"),
       legend.key.height = unit(0.5, "cm"),
-      legend.spacing.x = unit(0.4, "cm")
+      legend.spacing.x = unit(0.4, "cm"), 
+      axis.text.x = element_text(size = 9), 
+      axis.text.y = element_text(size = 9)
     )
 }
 
@@ -754,3 +768,54 @@ plot_mass(
   filter(mass_balance, compound == "phenanthrene"),
   "Phenanthrene Remaining (%)"
 )
+
+##multi panel figure
+# Install once if needed:
+# install.packages("patchwork")
+
+library(patchwork)
+
+# Create the three plots
+p_fla <- plot_mass(
+  plot_mass_fla,
+  filter(mass_balance, compound == "fluoranthene"),
+  "Fluoranthene\nRemaining (%)"
+)
+
+p_nap <- plot_mass(
+  plot_mass_nap,
+  filter(mass_balance, compound == "naphthalene"),
+  "Naphthalene\nRemaining (%)"
+)
+
+p_phe <- plot_mass(
+  plot_mass_phe,
+  filter(mass_balance, compound == "phenanthrene"),
+  "Phenanthrene\nRemaining (%)"
+)
+
+multi_panel <- p_nap / p_phe / p_fla +
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    tag_levels = "A",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) &
+  theme(legend.position = "top")
+multi_panel
+
+multi_panel <- p_nap / p_phe / p_fla +
+  plot_layout(
+    guides = "collect",
+    axis_titles = "collect"
+  ) +
+  plot_annotation(
+    tag_levels = "A",
+    theme = theme(
+      plot.tag = element_text(face = "bold", size = 14)
+    )
+  ) &
+  theme(legend.position = "top")
+
+multi_panel

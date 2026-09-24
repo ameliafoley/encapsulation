@@ -1,0 +1,246 @@
+---
+title: "qPCR Amplification Curve QC No Baseline"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    toc-location: left
+    code-fold: true
+    embed-resources: true
+---
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(here)
+library(readxl)
+library(scales)
+
+# Run/source the script that creates:
+#   qpcr_full
+#   amplification
+#   plot_amp_sample_strain()
+
+qpcr_full <- readRDS(
+  here("data", "qpcr_full.rds")
+)
+
+source(here("code", "sed-amp-nobaseline-20260915.R"))
+```
+
+# Amplification QC
+
+This report shows amplification curves grouped by biological sample
+and target strain.
+
+Colored curves are the technical replicate wells for the indicated
+sample and strain. Grey curves show other wells from the same
+plate/fluorophore combination for comparison.
+
+```{r}
+#| label: amplification-plots
+#| echo: false
+#| results: asis
+#| fig-width: 9
+#| fig-height: 5
+#| warning: false
+#| message: false
+
+# ------------------------------------------------------------
+# Determine which day x sample x strain combinations to plot
+# ------------------------------------------------------------
+
+samples_to_plot <- qpcr_full %>%
+  filter(
+    !is.na(sample_type),
+    sample_type == "sediment slurry",
+    !is.na(sample),
+    !is.na(strain),
+    !is.na(day)
+  ) %>%
+  distinct(
+    day,
+    sample,
+    strain,
+    sediment,
+    treatment,
+    replicate
+  ) %>%
+  mutate(
+    day_num = as.numeric(day)
+  ) %>%
+  arrange(
+    day_num,
+    sediment,
+    treatment,
+    replicate,
+    sample,
+    strain
+  )
+
+
+# ------------------------------------------------------------
+# Loop through:
+#
+# Day
+#   -> Sample
+#       -> Strain
+#           -> amplification plot
+# ------------------------------------------------------------
+
+days_to_plot <- samples_to_plot %>%
+  distinct(day, day_num) %>%
+  arrange(day_num)
+
+
+for (d_i in seq_len(nrow(days_to_plot))) {
+
+  day_current <- days_to_plot$day[d_i]
+
+  # ==========================================================
+  # DAY HEADING
+  # ==========================================================
+
+  cat(
+    "\n\n# Day ",
+    day_current,
+    "\n\n",
+    sep = ""
+  )
+
+
+  # Samples occurring on this day
+  day_samples <- samples_to_plot %>%
+    filter(day == day_current) %>%
+    distinct(
+      sample,
+      sediment,
+      treatment,
+      replicate
+    ) %>%
+    arrange(
+      sediment,
+      treatment,
+      replicate,
+      sample
+    )
+
+
+  # ----------------------------------------------------------
+  # Loop through samples within this day
+  # ----------------------------------------------------------
+
+  for (sample_i in seq_len(nrow(day_samples))) {
+
+    sample_current <- day_samples$sample[sample_i]
+    sediment_current <- day_samples$sediment[sample_i]
+    treatment_current <- day_samples$treatment[sample_i]
+    replicate_current <- day_samples$replicate[sample_i]
+
+
+    # ========================================================
+    # SAMPLE HEADING
+    # ========================================================
+
+    cat(
+      "\n\n## Sample ",
+      sample_current,
+      "\n\n",
+      sep = ""
+    )
+
+
+    # Sample metadata
+    cat(
+      "**Sediment:** ", sediment_current,
+      "  \n",
+      "**Treatment:** ", treatment_current,
+      "  \n",
+      "**Biological replicate:** ", replicate_current,
+      "\n\n",
+      sep = ""
+    )
+
+
+    # Find strains measured for this sample on this day
+    strains_current <- samples_to_plot %>%
+      filter(
+        day == day_current,
+        sample == sample_current
+      ) %>%
+      distinct(strain) %>%
+      arrange(strain) %>%
+      pull(strain)
+
+
+    # --------------------------------------------------------
+    # Loop through strains
+    # --------------------------------------------------------
+
+    for (strain_current in strains_current) {
+
+
+      # ======================================================
+      # STRAIN HEADING
+      # ======================================================
+
+      cat(
+        "\n\n### ",
+        strain_current,
+        "\n\n",
+        sep = ""
+      )
+
+
+      # Generate amplification plot
+      p <- plot_amp_sample_strain(
+        sample_check = sample_current,
+        strain_check = strain_current,
+        day_check = day_current,
+        amplification = amplification,
+        qpcr_full = qpcr_full
+      )
+
+
+      # Print plot
+      if (!is.null(p)) {
+
+        print(p)
+
+      } else {
+
+        cat(
+          "\n*No amplification data available for this ",
+          "sample × strain × day combination.*\n\n",
+          sep = ""
+        )
+      }
+    }
+  }
+}
+```
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).

@@ -31,10 +31,11 @@ treatment_linetypes <- c(
   "aqueous"     = "dashed",
   "super"       = "dashed",
   "supernatant" = "dashed",
+  "c" = "dashed", #in this dataset, capsule represents aqueous, since capsule-associated concentrations were not measured
   
   "capsule"     = "dotted",
   "cap"         = "dotted",
-  "c"         = "dotted",
+ # "c"         = "dotted",
   
   "cap+aq"      = "dotdash",
   "encapsulated"= "dotdash"
@@ -200,7 +201,7 @@ ggplot(plot_fla,
             linewidth=0.8, 
             position = pd)+
   
-  geom_point(position = pd, size=2)+
+  geom_point(position = pd, size=1.5)+
   
   geom_errorbar(
     aes(
@@ -558,7 +559,7 @@ plot_pah <- function(plot_data,
   )
   
   letter_offset <- letter_frac * y_max
-  star_offset   <- star_frac * y_max
+  
   
   ggplot(
     plot_data,
@@ -578,7 +579,7 @@ plot_pah <- function(plot_data,
     
     geom_point(
       position = pd,
-      size = 2
+      size = 1.5
     ) +
     
     geom_errorbar(
@@ -605,16 +606,22 @@ plot_pah <- function(plot_data,
     # ) +
     
     ## Dunnett stars
+    ## Dunnett stars
     geom_text(
       aes(
         y = .data[[mean_col]] +
           .data[[se_col]] +
-          star_offset,
-        label = ifelse(day == "0", "", stars),
+          ifelse(
+            treatment == "f",
+            0.03 * y_max,
+            0.06 * y_max
+          ),
+        label = ifelse(day == 0, "", stars),
         group = treatment
       ),
       position = pd,
-      size = 4,
+      size = 3.5,
+      color = "black",
       fontface = "bold",
       show.legend = FALSE
     ) +
@@ -630,7 +637,9 @@ plot_pah <- function(plot_data,
       strip.text = element_text(
         face = "italic",
         size = 12
-      )
+      ), 
+      axis.text.x = element_text(size = 9), 
+      axis.text.y = element_text(size = 9)
     ) +
     scale_colour_manual(
       name = "Sample",
@@ -657,7 +666,7 @@ plot_pah <- function(plot_data,
       colour = guide_legend(
         override.aes = list(
           linewidth = 1,
-          linetype = c("solid", "dotted"),
+          linetype = c("solid", "dashed"),
           shape = 16
         )
       ),
@@ -667,7 +676,8 @@ plot_pah <- function(plot_data,
       legend.position = "top",
       legend.key.width = unit(2, "cm"),
       legend.key.height = unit(0.5, "cm"),
-      legend.spacing.x = unit(0.4, "cm")
+      legend.spacing.x = unit(0.4, "cm"), 
+      panel.spacing.x = unit(0.08, "cm")
     )+
     
     labs(
@@ -685,6 +695,7 @@ plot_pah(
   se_col = "fluoranthene_se",
   ylab = "Fluoranthene (ng/mL)"
 )
+fla_mono <- last_plot()
 #napthalene
 plot_pah(
   plot_nap,
@@ -692,6 +703,7 @@ plot_pah(
   se_col = "nap_se",
   ylab = "Naphthalene (ng/mL)"
 )
+nap_mono <- last_plot()
 #phenanthrene
 plot_pah(
   plot_phe,
@@ -699,3 +711,4 @@ plot_pah(
   se_col = "phe_se",
   ylab = "Phenanthrene (ng/mL)"
 )
+phe_mono <- last_plot()

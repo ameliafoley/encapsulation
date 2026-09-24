@@ -352,7 +352,8 @@ plot_cfu <- function(plot_data,
       
       alpha = .35,
       
-      position = pd
+      position = pd, 
+      size = 1.5
       
     ) +
     
@@ -385,7 +386,7 @@ plot_cfu <- function(plot_data,
       
       position = pd,
       
-      size = 2
+      size = 1.5
       
     ) +
     
@@ -599,7 +600,8 @@ plot_cfu <- function(plot_data,       #for facet wrap
       
       alpha = .35,
       
-      position = pd
+      position = pd, 
+      size = 1.5
       
     ) +
     
@@ -632,7 +634,7 @@ plot_cfu <- function(plot_data,       #for facet wrap
       
       position = pd,
       
-      size = 2
+      size = 1.5
       
     ) +
     
@@ -1016,7 +1018,8 @@ plot_component <- function(plot_data,
       
       alpha = .35,
       
-      position = pd
+      position = pd, 
+      size = 1.5
       
     ) +
     
@@ -1060,7 +1063,7 @@ plot_component <- function(plot_data,
       
       position = pd,
       
-      size = 2
+      size = 1.5
       
     ) +
     
@@ -1325,7 +1328,7 @@ plot_component <- function(plot_data,              #new function for facet wrapp
       
       position = pd,
       
-      size = 2
+      size = 1.5
       
     ) +
     
@@ -1465,7 +1468,10 @@ plot_component <- function(plot_data,              #new function for facet wrapp
       legend.position = "top",
       legend.key.width = unit(2, "cm"),
       legend.key.height = unit(0.5, "cm"),
-      legend.spacing.x = unit(0.4, "cm")
+      legend.spacing.x = unit(0.4, "cm"), 
+      axis.text.x = element_text(size = 9), 
+      axis.text.y = element_text(size = 9), 
+      panel.spacing.x = unit(0.08, "cm")
     )
   
 }
@@ -1474,3 +1480,4 @@ plot_component(
   raw_component,
   "CFU/mL"
 )
+cfu_mono <- last_plot()
